@@ -82,7 +82,7 @@ export async function POST(request: NextRequest, { params }: ManualRouteProps) {
 		),
 	});
 
-	return NextResponse.redirect(new URL("/admin/manuals", request.url), 303);
+	return NextResponse.redirect(new URL("/admin/manuals?saved=updated", request.url), 303);
 }
 
 async function uploadStepImage(

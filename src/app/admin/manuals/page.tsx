@@ -13,12 +13,20 @@ const statusLabels: Record<string, string> = {
 	private: "非公開",
 };
 
+const savedMessages: Record<string, string> = {
+	created: "マニュアルを作成しました。",
+	updated: "マニュアルを保存しました。",
+	duplicated: "マニュアルを複製しました。",
+	deleted: "マニュアルを削除しました。",
+};
+
 type AdminManualsPageProps = {
 	searchParams: Promise<{
 		q?: string;
 		status?: string;
 		areaId?: string;
 		timingId?: string;
+		saved?: string;
 	}>;
 };
 
@@ -55,6 +63,12 @@ export default async function AdminManualsPage({ searchParams }: AdminManualsPag
 				<h1 className="mt-2 text-3xl font-semibold leading-tight">マニュアル管理</h1>
 				<p className="mt-3 text-sm leading-6 text-[#5f6559]">公開状態と分類を確認しながら、マニュアルを管理します。</p>
 			</header>
+
+			{params.saved && savedMessages[params.saved] ? (
+				<p className="rounded-md border border-[#c9d9c5] bg-white p-3 text-sm font-semibold text-[#315f3a]">
+					{savedMessages[params.saved]}
+				</p>
+			) : null}
 
 			<form className="grid gap-3 rounded-md border border-[#d9ded2] bg-white p-4 lg:grid-cols-[1fr_12rem_12rem_12rem_auto]">
 				<label className="grid gap-2">

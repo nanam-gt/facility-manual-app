@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { DirtyForm } from "@/components/admin/dirty-form";
 import { BackHomeLink, PageShell } from "@/components/public/page-shell";
 import { getAdminManualForEdit, getManualFormOptions } from "@/lib/admin/manual-queries";
 import { getCurrentAdmin } from "@/lib/auth/session";
@@ -39,7 +40,7 @@ export default async function EditManualPage({ params, searchParams }: EditManua
 				<p className="mt-3 text-sm leading-6 text-[#5f6559]">基本情報、注意事項、手順を編集します。</p>
 			</header>
 
-			<form action={`/api/admin/manuals/${manual.id}`} method="post" className="grid gap-6">
+			<DirtyForm action={`/api/admin/manuals/${manual.id}`} method="post" className="grid gap-6" encType="multipart/form-data">
 				{error ? (
 					<p className="rounded-md border border-[#d8c7a2] bg-[#fff8e8] p-3 text-sm leading-6 text-[#6f5420]">
 						必須項目を確認してください。
@@ -168,7 +169,7 @@ export default async function EditManualPage({ params, searchParams }: EditManua
 						保存
 					</button>
 				</section>
-			</form>
+			</DirtyForm>
 		</PageShell>
 	);
 }

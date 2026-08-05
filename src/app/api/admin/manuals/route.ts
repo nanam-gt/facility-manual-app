@@ -29,5 +29,5 @@ export async function POST(request: NextRequest) {
 		status: statusRaw as "draft" | "published" | "private",
 	});
 
-	return NextResponse.redirect(new URL("/admin/manuals", request.url), 303);
+	return NextResponse.redirect(new URL("/admin/manuals?saved=created", request.url), 303);
 }

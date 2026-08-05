@@ -17,5 +17,5 @@ export async function POST(request: NextRequest, { params }: DeleteRouteProps) {
 	const { id } = await params;
 	await softDeleteManual(id);
 
-	return NextResponse.redirect(new URL("/admin/manuals", request.url), 303);
+	return NextResponse.redirect(new URL("/admin/manuals?saved=deleted", request.url), 303);
 }

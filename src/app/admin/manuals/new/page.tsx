@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { DirtyForm } from "@/components/admin/dirty-form";
 import { BackHomeLink, PageShell } from "@/components/public/page-shell";
 import { getManualFormOptions } from "@/lib/admin/manual-queries";
 import { getCurrentAdmin } from "@/lib/auth/session";
@@ -29,7 +30,7 @@ export default async function NewManualPage({ searchParams }: NewManualPageProps
 				<p className="mt-3 text-sm leading-6 text-[#5f6559]">まず基本情報を登録します。手順や写真は続くフェーズで編集できるようにします。</p>
 			</header>
 
-			<form action="/api/admin/manuals" method="post" className="grid gap-5 rounded-md border border-[#d9ded2] bg-white p-5">
+			<DirtyForm action="/api/admin/manuals" method="post" className="grid gap-5 rounded-md border border-[#d9ded2] bg-white p-5">
 				{error ? (
 					<p className="rounded-md border border-[#d8c7a2] bg-[#fff8e8] p-3 text-sm leading-6 text-[#6f5420]">
 						タイトル、エリア、タイミング、公開状態を確認してください。
@@ -127,7 +128,7 @@ export default async function NewManualPage({ searchParams }: NewManualPageProps
 				>
 					保存
 				</button>
-			</form>
+			</DirtyForm>
 		</PageShell>
 	);
 }
