@@ -16,6 +16,38 @@ export type AdminManualOption = {
 	name: string;
 };
 
+export type AdminManualStepInput = {
+	title: string;
+	description?: string;
+	warning?: string;
+	completionCriteria?: string;
+	tools?: string;
+	durationMinutes?: number | null;
+};
+
+export type AdminManualEdit = {
+	id: string;
+	title: string;
+	slug: string;
+	areaId: string;
+	timingId: string;
+	summary: string | null;
+	preparation: string | null;
+	tools: string | null;
+	chemicals: string | null;
+	targetStaff: string | null;
+	frequency: string | null;
+	durationMode: string;
+	durationMinMinutes: number | null;
+	durationMaxMinutes: number | null;
+	durationNote: string | null;
+	generalWarning: string | null;
+	completionNote: string | null;
+	searchKeywords: string | null;
+	status: "draft" | "published" | "private";
+	steps: Array<AdminManualStepInput & { id: string }>;
+};
+
 export type CreateManualInput = {
 	title: string;
 	slug?: string;
@@ -23,6 +55,23 @@ export type CreateManualInput = {
 	timingId: string;
 	summary?: string;
 	status: "draft" | "published" | "private";
+};
+
+export type UpdateManualInput = CreateManualInput & {
+	id: string;
+	preparation?: string;
+	tools?: string;
+	chemicals?: string;
+	targetStaff?: string;
+	frequency?: string;
+	durationMode: "manual" | "steps_sum" | "hidden";
+	durationMinMinutes?: number | null;
+	durationMaxMinutes?: number | null;
+	durationNote?: string;
+	generalWarning?: string;
+	completionNote?: string;
+	searchKeywords?: string;
+	steps: AdminManualStepInput[];
 };
 
 export async function listAdminManuals(): Promise<AdminManualListItem[]> {
@@ -145,7 +194,241 @@ export async function createManual(input: CreateManualInput): Promise<string> {
 	return slug;
 }
 
-async function createUniqueSlug(value: string): Promise<string> {
+export async function getAdminManualForEdit(id: string): Promise<AdminManualEdit | null> {
+	const db = await getDb();
+	const manual = await db
+		.prepare(
+			`
+			SELECT
+				id,
+				title,
+				slug,
+				area_id,
+				timing_id,
+				summary,
+				preparation,
+				tools,
+				chemicals,
+				target_staff,
+				frequency,
+				duration_mode,
+				duration_min_minutes,
+				duration_max_minutes,
+				duration_note,
+				general_warning,
+				completion_note,
+				search_keywords,
+				status
+			FROM manuals
+			WHERE id = ?
+				AND deleted_at IS NULL
+			LIMIT 1
+			`,
+		)
+		.bind(id)
+		.first<{
+			id: string;
+			title: string;
+			slug: string;
+			area_id: string;
+			timing_id: string;
+			summary: string | null;
+			preparation: string | null;
+			tools: string | null;
+			chemicals: string | null;
+			target_staff: string | null;
+			frequency: string | null;
+			duration_mode: string;
+			duration_min_minutes: number | null;
+			duration_max_minutes: number | null;
+			duration_note: string | null;
+			general_warning: string | null;
+			completion_note: string | null;
+			search_keywords: string | null;
+			status: "draft" | "published" | "private";
+		}>();
+
+	if (!manual) {
+		return null;
+	}
+
+	const { results: steps } = await db
+		.prepare(
+			`
+			SELECT
+				id,
+				title,
+				description,
+				warning,
+				completion_criteria,
+				tools,
+				duration_minutes
+			FROM manual_steps
+			WHERE manual_id = ?
+				AND deleted_at IS NULL
+			ORDER BY display_order ASC, title ASC
+			`,
+		)
+		.bind(id)
+		.all<{
+			id: string;
+			title: string;
+			description: string | null;
+			warning: string | null;
+			completion_criteria: string | null;
+			tools: string | null;
+			duration_minutes: number | null;
+		}>();
+
+	return {
+		id: manual.id,
+		title: manual.title,
+		slug: manual.slug,
+		areaId: manual.area_id,
+		timingId: manual.timing_id,
+		summary: manual.summary,
+		preparation: manual.preparation,
+		tools: manual.tools,
+		chemicals: manual.chemicals,
+		targetStaff: manual.target_staff,
+		frequency: manual.frequency,
+		durationMode: manual.duration_mode,
+		durationMinMinutes: manual.duration_min_minutes,
+		durationMaxMinutes: manual.duration_max_minutes,
+		durationNote: manual.duration_note,
+		generalWarning: manual.general_warning,
+		completionNote: manual.completion_note,
+		searchKeywords: manual.search_keywords,
+		status: manual.status,
+		steps: steps.map((step) => ({
+			id: step.id,
+			title: step.title,
+			description: step.description ?? "",
+			warning: step.warning ?? "",
+			completionCriteria: step.completion_criteria ?? "",
+			tools: step.tools ?? "",
+			durationMinutes: step.duration_minutes,
+		})),
+	};
+}
+
+export async function updateManual(input: UpdateManualInput): Promise<string> {
+	const db = await getDb();
+	const now = new Date().toISOString();
+	const existing = await db.prepare("SELECT slug FROM manuals WHERE id = ? LIMIT 1").bind(input.id).first<{ slug: string }>();
+
+	if (!existing) {
+		throw new Error("Manual not found.");
+	}
+
+	const requestedSlug = toSlug(input.slug || input.title) || existing.slug;
+	const slug = await createUniqueSlug(requestedSlug, input.id);
+
+	const statements = [
+		db
+			.prepare(
+				`
+				UPDATE manuals
+				SET
+					title = ?,
+					slug = ?,
+					area_id = ?,
+					timing_id = ?,
+					summary = ?,
+					preparation = ?,
+					tools = ?,
+					chemicals = ?,
+					target_staff = ?,
+					frequency = ?,
+					duration_mode = ?,
+					duration_min_minutes = ?,
+					duration_max_minutes = ?,
+					duration_note = ?,
+					general_warning = ?,
+					completion_note = ?,
+					search_keywords = ?,
+					status = ?,
+					published_at = CASE
+						WHEN ? = 'published' AND published_at IS NULL THEN ?
+						WHEN ? != 'published' THEN NULL
+						ELSE published_at
+					END,
+					updated_at = ?
+				WHERE id = ?
+				`,
+			)
+			.bind(
+				input.title,
+				slug,
+				input.areaId,
+				input.timingId,
+				nullable(input.summary),
+				nullable(input.preparation),
+				nullable(input.tools),
+				nullable(input.chemicals),
+				nullable(input.targetStaff),
+				nullable(input.frequency),
+				input.durationMode,
+				input.durationMode === "manual" ? input.durationMinMinutes : null,
+				input.durationMode === "manual" ? input.durationMaxMinutes : null,
+				nullable(input.durationNote),
+				nullable(input.generalWarning),
+				nullable(input.completionNote),
+				nullable(input.searchKeywords),
+				input.status,
+				input.status,
+				now,
+				input.status,
+				now,
+				input.id,
+			),
+		db.prepare("DELETE FROM manual_steps WHERE manual_id = ?").bind(input.id),
+	];
+
+	input.steps
+		.filter((step) => step.title.trim().length > 0)
+		.forEach((step, index) => {
+			statements.push(
+				db
+					.prepare(
+						`
+						INSERT INTO manual_steps (
+							id,
+							manual_id,
+							title,
+							description,
+							warning,
+							completion_criteria,
+							tools,
+							duration_minutes,
+							display_order,
+							created_at,
+							updated_at,
+							deleted_at
+						) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
+						`,
+					)
+					.bind(
+						generateId("step"),
+						input.id,
+						step.title.trim(),
+						nullable(step.description),
+						nullable(step.warning),
+						nullable(step.completionCriteria),
+						nullable(step.tools),
+						step.durationMinutes ?? null,
+						(index + 1) * 10,
+						now,
+						now,
+					),
+			);
+		});
+
+	await db.batch(statements);
+	return slug;
+}
+
+async function createUniqueSlug(value: string, currentManualId?: string): Promise<string> {
 	const db = await getDb();
 	const baseSlug = toSlug(value) || `manual-${crypto.randomUUID().slice(0, 8)}`;
 	let candidate = baseSlug;
@@ -158,10 +441,18 @@ async function createUniqueSlug(value: string): Promise<string> {
 
 	async function slugExists(slug: string): Promise<boolean> {
 		const row = await db.prepare("SELECT id FROM manuals WHERE slug = ? LIMIT 1").bind(slug).first<{ id: string }>();
+		if (currentManualId && row?.id === currentManualId) {
+			return false;
+		}
 		return Boolean(row);
 	}
 
 	return candidate;
+}
+
+function nullable(value: string | undefined | null): string | null {
+	const trimmed = value?.trim() ?? "";
+	return trimmed.length > 0 ? trimmed : null;
 }
 
 function toSlug(value: string): string {

@@ -58,6 +58,12 @@ export default async function AdminManualsPage() {
 								>
 									表示
 								</Link>
+								<Link
+									href={`/admin/manuals/${manual.id}/edit`}
+									className="rounded-md border border-[#c9cec1] px-2.5 py-1 text-sm font-semibold text-[#315f3a] hover:border-[#8aa879]"
+								>
+									編集
+								</Link>
 							</div>
 						</div>
 					</div>
