@@ -160,12 +160,14 @@ export default async function AdminManualsPage({ searchParams }: AdminManualsPag
 									<span className="rounded-md bg-[#edf1e9] px-2.5 py-1 text-sm text-[#4f5d43]">
 										{statusLabels[manual.status] ?? manual.status}
 									</span>
-									<Link
-										href={`/manuals/${manual.slug}`}
-										className="rounded-md border border-[#c9cec1] px-2.5 py-1 text-sm font-semibold text-[#315f3a] hover:border-[#8aa879]"
-									>
-										表示
-									</Link>
+									{manual.status === "published" ? (
+										<Link
+											href={`/manuals/${manual.slug}`}
+											className="rounded-md border border-[#c9cec1] px-2.5 py-1 text-sm font-semibold text-[#315f3a] hover:border-[#8aa879]"
+										>
+											表示
+										</Link>
+									) : null}
 									<Link
 										href={`/admin/manuals/${manual.id}/edit`}
 										className="rounded-md border border-[#c9cec1] px-2.5 py-1 text-sm font-semibold text-[#315f3a] hover:border-[#8aa879]"
