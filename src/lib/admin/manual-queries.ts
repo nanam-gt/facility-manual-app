@@ -79,8 +79,49 @@ export type UpdateManualInput = CreateManualInput & {
 	steps: AdminManualStepInput[];
 };
 
-export async function listAdminManuals(): Promise<AdminManualListItem[]> {
+export type AdminManualListFilters = {
+	q?: string;
+	status?: string;
+	areaId?: string;
+	timingId?: string;
+};
+
+export async function listAdminManuals(filters: AdminManualListFilters = {}): Promise<AdminManualListItem[]> {
 	const db = await getDb();
+	const q = filters.q?.trim() ?? "";
+	const where = ["manuals.deleted_at IS NULL"];
+	const binds: Array<string | number> = [];
+
+	if (filters.status && ["draft", "published", "private"].includes(filters.status)) {
+		where.push("manuals.status = ?");
+		binds.push(filters.status);
+	}
+
+	if (filters.areaId) {
+		where.push("manuals.area_id = ?");
+		binds.push(filters.areaId);
+	}
+
+	if (filters.timingId) {
+		where.push("manuals.timing_id = ?");
+		binds.push(filters.timingId);
+	}
+
+	if (q) {
+		const likeQuery = `%${q}%`;
+		where.push(`
+			(
+				manuals.title LIKE ?
+				OR manuals.slug LIKE ?
+				OR manuals.summary LIKE ?
+				OR manuals.search_keywords LIKE ?
+				OR areas.name LIKE ?
+				OR timings.name LIKE ?
+			)
+		`);
+		binds.push(likeQuery, likeQuery, likeQuery, likeQuery, likeQuery, likeQuery);
+	}
+
 	const { results } = await db
 		.prepare(
 			`
@@ -95,10 +136,12 @@ export async function listAdminManuals(): Promise<AdminManualListItem[]> {
 			FROM manuals
 			INNER JOIN areas ON areas.id = manuals.area_id
 			INNER JOIN timings ON timings.id = manuals.timing_id
-			WHERE manuals.deleted_at IS NULL
+			WHERE ${where.join("\n\t\t\t\tAND ")}
 			ORDER BY manuals.updated_at DESC, manuals.display_order ASC
+			LIMIT 100
 			`,
 		)
+		.bind(...binds)
 		.all<{
 			id: string;
 			title: string;
