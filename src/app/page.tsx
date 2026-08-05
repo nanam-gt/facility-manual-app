@@ -1,52 +1,112 @@
-import Image from "next/image";
+import { getPublicHomeData } from "@/lib/db/public-queries";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+	const { areas, timings, recentManuals } = await getPublicHomeData();
+
 	return (
-		<div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-			<main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-				<Image className="dark:invert" src="/next.svg" alt="Next.js logo" width={180} height={38} priority />
-				<ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-					<li className="mb-2 tracking-[-.01em]">
-						Get started by editing{" "}
-						<code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-							src/app/page.tsx
-						</code>
-						.
-					</li>
-					<li className="tracking-[-.01em]">Save and see your changes instantly.</li>
-				</ol>
+		<main className="min-h-screen bg-[#f6f7f4] text-[#22251f]">
+			<section className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 py-8 sm:px-8 lg:px-10">
+				<header className="flex flex-col gap-4 border-b border-[#d7dbd0] pb-7">
+					<p className="text-sm font-medium text-[#5b6f45]">施設管理マニュアル</p>
+					<div className="flex flex-col gap-3">
+						<h1 className="text-3xl font-semibold leading-tight sm:text-4xl">必要な作業手順をすぐ確認</h1>
+						<p className="max-w-2xl text-base leading-7 text-[#5f6559]">
+							エリア、タイミング、キーワードから施設内の清掃・補充・点検マニュアルを探せます。
+						</p>
+					</div>
+					<form action="/search" className="flex w-full max-w-2xl flex-col gap-3 sm:flex-row">
+						<label className="sr-only" htmlFor="manual-search">
+							マニュアル検索
+						</label>
+						<input
+							id="manual-search"
+							name="q"
+							type="search"
+							placeholder="例：トイレ清掃、補充、OUT後"
+							className="min-h-12 flex-1 rounded-md border border-[#c9cec1] bg-white px-4 text-base outline-none transition focus:border-[#4f7d3f] focus:ring-4 focus:ring-[#4f7d3f]/15"
+						/>
+						<button
+							type="submit"
+							className="min-h-12 rounded-md bg-[#2f5f3b] px-5 text-base font-semibold text-white transition hover:bg-[#244b2e] focus:outline-none focus:ring-4 focus:ring-[#2f5f3b]/25"
+						>
+							検索
+						</button>
+					</form>
+				</header>
 
-				<div className="flex gap-4 items-center flex-col sm:flex-row">
-					<a
-						className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-						href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Read our docs
-					</a>
+				<div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+					<section className="flex flex-col gap-4">
+						<div className="flex items-end justify-between gap-4">
+							<h2 className="text-xl font-semibold">エリアから探す</h2>
+							<span className="text-sm text-[#6b7165]">{areas.length}件</span>
+						</div>
+						<div className="grid gap-3 sm:grid-cols-2">
+							{areas.map((area) => (
+								<a
+									key={area.id}
+									href={`/areas/${area.id}`}
+									className="rounded-md border border-[#d9ded2] bg-white p-4 transition hover:border-[#8aa879] hover:shadow-sm focus:outline-none focus:ring-4 focus:ring-[#4f7d3f]/15"
+								>
+									<div className="flex items-start justify-between gap-3">
+										<div>
+											<p className="text-sm font-medium text-[#758064]">{area.code ?? "Area"}</p>
+											<h3 className="mt-1 text-lg font-semibold">{area.name}</h3>
+										</div>
+										<span className="rounded-md bg-[#edf1e9] px-2.5 py-1 text-sm text-[#4f5d43]">
+											{area.manualCount}件
+										</span>
+									</div>
+									{area.description ? <p className="mt-3 text-sm leading-6 text-[#687061]">{area.description}</p> : null}
+								</a>
+							))}
+						</div>
+					</section>
+
+					<section className="flex flex-col gap-4">
+						<div className="flex items-end justify-between gap-4">
+							<h2 className="text-xl font-semibold">タイミング</h2>
+							<span className="text-sm text-[#6b7165]">{timings.length}件</span>
+						</div>
+						<div className="flex flex-col gap-3">
+							{timings.map((timing) => (
+								<a
+									key={timing.id}
+									href={`/search?timingId=${timing.id}`}
+									className="rounded-md border border-[#d9ded2] bg-white p-4 transition hover:border-[#8aa879] hover:shadow-sm focus:outline-none focus:ring-4 focus:ring-[#4f7d3f]/15"
+								>
+									<div className="flex items-center justify-between gap-3">
+										<h3 className="text-base font-semibold">{timing.name}</h3>
+										<span className="text-sm text-[#687061]">{timing.manualCount}件</span>
+									</div>
+									{timing.description ? <p className="mt-2 text-sm leading-6 text-[#687061]">{timing.description}</p> : null}
+								</a>
+							))}
+						</div>
+					</section>
 				</div>
-			</main>
-			<footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-				<a
-					className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-					href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					<Image aria-hidden src="/file.svg" alt="File icon" width={16} height={16} />
-					Learn
-				</a>
-				<a
-					className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-					href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					<Image aria-hidden src="/globe.svg" alt="Globe icon" width={16} height={16} />
-					Go to nextjs.org →
-				</a>
-			</footer>
-		</div>
+
+				<section className="flex flex-col gap-4 border-t border-[#d7dbd0] pt-7">
+					<h2 className="text-xl font-semibold">最近更新されたマニュアル</h2>
+					{recentManuals.length > 0 ? (
+						<div className="grid gap-3">
+							{recentManuals.map((manual) => (
+								<a key={manual.id} href={`/manuals/${manual.slug}`} className="rounded-md border border-[#d9ded2] bg-white p-4">
+									<h3 className="font-semibold">{manual.title}</h3>
+									<p className="mt-2 text-sm text-[#687061]">
+										{manual.areaName} / {manual.timingName} / 更新日 {manual.updatedAt}
+									</p>
+								</a>
+							))}
+						</div>
+					) : (
+						<p className="rounded-md border border-dashed border-[#c9cec1] bg-white p-4 text-sm leading-6 text-[#687061]">
+							まだ公開マニュアルはありません。管理画面の基礎を作った後、ここに公開済みマニュアルが表示されます。
+						</p>
+					)}
+				</section>
+			</section>
+		</main>
 	);
 }
