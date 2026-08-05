@@ -10,9 +10,9 @@ export default async function Home() {
 		<main className="min-h-screen bg-[#f6f7f4] text-[#22251f]">
 			<section className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 py-8 sm:px-8 lg:px-10">
 				<header className="flex flex-col gap-4 border-b border-[#d7dbd0] pb-7">
-					<p className="text-sm font-medium text-[#5b6f45]">施設管理マニュアル</p>
+					<p className="text-sm font-medium text-[#5b6f45]">いちばん星ビレッジ</p>
 					<div className="flex flex-col gap-3">
-						<h1 className="text-3xl font-semibold leading-tight sm:text-4xl">必要な作業手順をすぐ確認</h1>
+						<h1 className="text-3xl font-semibold leading-tight sm:text-4xl">施設管理マニュアル</h1>
 						<p className="max-w-2xl text-base leading-7 text-[#5f6559]">
 							エリア、タイミング、キーワードから施設内の清掃・補充・点検マニュアルを探せます。
 						</p>
