@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateManual } from "@/lib/admin/manual-queries";
+import { rejectCrossOriginPost } from "@/lib/auth/request-guards";
 import { getCurrentAdmin } from "@/lib/auth/session";
 import { getEnv } from "@/lib/db/client";
 import { detectImageMetadata } from "@/lib/images/metadata";
@@ -14,6 +15,11 @@ type ManualRouteProps = {
 };
 
 export async function POST(request: NextRequest, { params }: ManualRouteProps) {
+	const crossOriginResponse = rejectCrossOriginPost(request);
+	if (crossOriginResponse) {
+		return crossOriginResponse;
+	}
+
 	const admin = await getCurrentAdmin();
 	if (!admin) {
 		return NextResponse.redirect(new URL("/admin/login", request.url), 303);

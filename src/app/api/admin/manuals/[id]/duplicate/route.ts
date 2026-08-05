@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { duplicateManual } from "@/lib/admin/manual-queries";
+import { rejectCrossOriginPost } from "@/lib/auth/request-guards";
 import { getCurrentAdmin } from "@/lib/auth/session";
 
 type DuplicateRouteProps = {
@@ -9,6 +10,11 @@ type DuplicateRouteProps = {
 };
 
 export async function POST(request: NextRequest, { params }: DuplicateRouteProps) {
+	const crossOriginResponse = rejectCrossOriginPost(request);
+	if (crossOriginResponse) {
+		return crossOriginResponse;
+	}
+
 	const admin = await getCurrentAdmin();
 	if (!admin) {
 		return NextResponse.redirect(new URL("/admin/login", request.url), 303);

@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { rejectCrossOriginPost } from "@/lib/auth/request-guards";
 import { ADMIN_SESSION_COOKIE, loginAdmin } from "@/lib/auth/session";
 
 export async function POST(request: NextRequest) {
+	const crossOriginResponse = rejectCrossOriginPost(request);
+	if (crossOriginResponse) {
+		return crossOriginResponse;
+	}
+
 	const formData = await request.formData();
 	const email = String(formData.get("email") ?? "").trim();
 	const password = String(formData.get("password") ?? "");

@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createManual } from "@/lib/admin/manual-queries";
+import { rejectCrossOriginPost } from "@/lib/auth/request-guards";
 import { getCurrentAdmin } from "@/lib/auth/session";
 
 const allowedStatuses = new Set(["draft", "published", "private"]);
 
 export async function POST(request: NextRequest) {
+	const crossOriginResponse = rejectCrossOriginPost(request);
+	if (crossOriginResponse) {
+		return crossOriginResponse;
+	}
+
 	const admin = await getCurrentAdmin();
 	if (!admin) {
 		return NextResponse.redirect(new URL("/admin/login", request.url), 303);
