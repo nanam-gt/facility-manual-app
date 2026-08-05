@@ -2,13 +2,9 @@
  * For more details on how to configure Wrangler, refer to:
  * https://developers.cloudflare.com/workers/wrangler/configuration/
  */
-/**
- * For more details on how to configure Wrangler, refer to:
- * https://developers.cloudflare.com/workers/wrangler/configuration/
- */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "facility-manual-next-scaffold",
+	"name": "facility-manual-app",
 	"main": ".open-next/worker.js",
 	"compatibility_date": "2026-08-05",
 	"compatibility_flags": [
@@ -29,13 +25,31 @@
 			// Self-reference service binding, the service name must match the worker name
 			// see https://opennext.js.org/cloudflare/caching
 			"binding": "WORKER_SELF_REFERENCE",
-			"service": "facility-manual-next-scaffold"
+			"service": "facility-manual-app"
 		}
 	],
 	"observability": {
 		"enabled": true
 	},
-	"upload_source_maps": true
+	"upload_source_maps": true,
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "facility-manual-db",
+			// Replace this after creating the real D1 database in Cloudflare.
+			"database_id": "00000000-0000-0000-0000-000000000000",
+			"migrations_dir": "migrations"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "MANUAL_IMAGES",
+			"bucket_name": "facility-manual-images"
+		}
+	],
+	"vars": {
+		"NEXTJS_ENV": "production"
+	}
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
