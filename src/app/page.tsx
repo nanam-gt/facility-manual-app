@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getPublicHomeData } from "@/lib/db/public-queries";
 
 export const dynamic = "force-dynamic";
@@ -44,7 +45,7 @@ export default async function Home() {
 						</div>
 						<div className="grid gap-3 sm:grid-cols-2">
 							{areas.map((area) => (
-								<a
+								<Link
 									key={area.id}
 									href={`/areas/${area.id}`}
 									className="rounded-md border border-[#d9ded2] bg-white p-4 transition hover:border-[#8aa879] hover:shadow-sm focus:outline-none focus:ring-4 focus:ring-[#4f7d3f]/15"
@@ -59,7 +60,7 @@ export default async function Home() {
 										</span>
 									</div>
 									{area.description ? <p className="mt-3 text-sm leading-6 text-[#687061]">{area.description}</p> : null}
-								</a>
+								</Link>
 							))}
 						</div>
 					</section>
@@ -71,7 +72,7 @@ export default async function Home() {
 						</div>
 						<div className="flex flex-col gap-3">
 							{timings.map((timing) => (
-								<a
+								<Link
 									key={timing.id}
 									href={`/search?timingId=${timing.id}`}
 									className="rounded-md border border-[#d9ded2] bg-white p-4 transition hover:border-[#8aa879] hover:shadow-sm focus:outline-none focus:ring-4 focus:ring-[#4f7d3f]/15"
@@ -81,7 +82,7 @@ export default async function Home() {
 										<span className="text-sm text-[#687061]">{timing.manualCount}件</span>
 									</div>
 									{timing.description ? <p className="mt-2 text-sm leading-6 text-[#687061]">{timing.description}</p> : null}
-								</a>
+								</Link>
 							))}
 						</div>
 					</section>
@@ -92,12 +93,16 @@ export default async function Home() {
 					{recentManuals.length > 0 ? (
 						<div className="grid gap-3">
 							{recentManuals.map((manual) => (
-								<a key={manual.id} href={`/manuals/${manual.slug}`} className="rounded-md border border-[#d9ded2] bg-white p-4">
+								<Link
+									key={manual.id}
+									href={`/manuals/${manual.slug}`}
+									className="rounded-md border border-[#d9ded2] bg-white p-4"
+								>
 									<h3 className="font-semibold">{manual.title}</h3>
 									<p className="mt-2 text-sm text-[#687061]">
 										{manual.areaName} / {manual.timingName} / 更新日 {manual.updatedAt}
 									</p>
-								</a>
+								</Link>
 							))}
 						</div>
 					) : (
