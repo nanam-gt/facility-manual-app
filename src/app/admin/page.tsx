@@ -63,9 +63,9 @@ export default async function AdminPage() {
 					</div>
 				</div>
 				<div className="rounded-md border border-[#d9ded2] bg-white p-5">
-					<h2 className="text-xl font-semibold">次に作る管理機能</h2>
+					<h2 className="text-xl font-semibold">管理メニュー</h2>
 					<div className="mt-4 grid gap-3 text-sm leading-6 text-[#5f6559]">
-						<p>分類とマニュアルを管理できます。写真アップロード、印刷、バックアップは続くフェーズで追加します。</p>
+						<p>分類、マニュアル、バックアップを管理できます。</p>
 						<Link
 							href="/admin/manuals"
 							className="inline-flex min-h-11 w-fit items-center rounded-md bg-[#2f5f3b] px-4 font-semibold text-white transition hover:bg-[#244b2e] focus:outline-none focus:ring-4 focus:ring-[#2f5f3b]/25"
@@ -84,6 +84,12 @@ export default async function AdminPage() {
 								className="inline-flex min-h-10 items-center rounded-md border border-[#c9cec1] px-3 font-semibold text-[#315f3a] hover:border-[#8aa879]"
 							>
 								タイミング管理
+							</Link>
+							<Link
+								href="/admin/backup"
+								className="inline-flex min-h-10 items-center rounded-md border border-[#c9cec1] px-3 font-semibold text-[#315f3a] hover:border-[#8aa879]"
+							>
+								バックアップ
 							</Link>
 						</div>
 					</div>
