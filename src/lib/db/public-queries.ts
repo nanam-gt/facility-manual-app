@@ -209,6 +209,38 @@ export async function listPublicTimingSummaries(): Promise<PublicTimingSummary[]
 	}));
 }
 
+export async function listPublicTimingSummariesByArea(areaId: string): Promise<PublicTimingSummary[]> {
+	const db = await getDb();
+	const { results } = await db
+		.prepare(
+			`
+			SELECT
+				timings.id,
+				timings.name,
+				timings.description,
+				COUNT(manuals.id) AS manual_count
+			FROM timings
+			LEFT JOIN manuals
+				ON manuals.timing_id = timings.id
+				AND manuals.area_id = ?
+				AND manuals.status = 'published'
+				AND manuals.deleted_at IS NULL
+			WHERE timings.is_active = 1
+			GROUP BY timings.id
+			ORDER BY timings.display_order ASC, timings.name ASC
+			`,
+		)
+		.bind(areaId)
+		.all<TimingRow>();
+
+	return results.map((row) => ({
+		id: row.id,
+		name: row.name,
+		description: row.description,
+		manualCount: row.manual_count,
+	}));
+}
+
 export async function listRecentPublicManuals(limit = 5): Promise<RecentManualSummary[]> {
 	const db = await getDb();
 	const { results } = await db
@@ -284,6 +316,41 @@ export async function getPublicArea(areaId: string): Promise<PublicAreaSummary |
 	};
 }
 
+export async function getPublicTiming(timingId: string): Promise<PublicTimingSummary | null> {
+	const db = await getDb();
+	const row = await db
+		.prepare(
+			`
+			SELECT
+				timings.id,
+				timings.name,
+				timings.description,
+				COUNT(manuals.id) AS manual_count
+			FROM timings
+			LEFT JOIN manuals
+				ON manuals.timing_id = timings.id
+				AND manuals.status = 'published'
+				AND manuals.deleted_at IS NULL
+			WHERE timings.id = ?
+				AND timings.is_active = 1
+			GROUP BY timings.id
+			`,
+		)
+		.bind(timingId)
+		.first<TimingRow>();
+
+	if (!row) {
+		return null;
+	}
+
+	return {
+		id: row.id,
+		name: row.name,
+		description: row.description,
+		manualCount: row.manual_count,
+	};
+}
+
 export async function listPublicManualsByArea(areaId: string): Promise<PublicManualListItem[]> {
 	const db = await getDb();
 	const { results } = await db
@@ -312,6 +379,39 @@ export async function listPublicManualsByArea(areaId: string): Promise<PublicMan
 			`,
 		)
 		.bind(areaId)
+		.all<ManualListRow>();
+
+	return results.map(mapManualListRow);
+}
+
+export async function listPublicManualsByTiming(timingId: string): Promise<PublicManualListItem[]> {
+	const db = await getDb();
+	const { results } = await db
+		.prepare(
+			`
+			SELECT
+				manuals.id,
+				manuals.title,
+				manuals.slug,
+				manuals.summary,
+				manuals.duration_min_minutes,
+				manuals.duration_max_minutes,
+				manuals.duration_note,
+				areas.name AS area_name,
+				timings.name AS timing_name,
+				manuals.updated_at
+			FROM manuals
+			INNER JOIN areas ON areas.id = manuals.area_id
+			INNER JOIN timings ON timings.id = manuals.timing_id
+			WHERE manuals.timing_id = ?
+				AND manuals.status = 'published'
+				AND manuals.deleted_at IS NULL
+				AND areas.is_active = 1
+				AND timings.is_active = 1
+			ORDER BY areas.display_order ASC, manuals.display_order ASC, manuals.title ASC
+			`,
+		)
+		.bind(timingId)
 		.all<ManualListRow>();
 
 	return results.map(mapManualListRow);

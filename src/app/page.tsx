@@ -74,7 +74,7 @@ export default async function Home() {
 							{timings.map((timing) => (
 								<Link
 									key={timing.id}
-									href={`/search?timingId=${timing.id}`}
+									href={`/timings/${timing.id}`}
 									className="rounded-md border border-[#d9ded2] bg-white p-4 transition hover:border-[#8aa879] hover:shadow-sm focus:outline-none focus:ring-4 focus:ring-[#4f7d3f]/15"
 								>
 									<div className="flex items-center justify-between gap-3">
