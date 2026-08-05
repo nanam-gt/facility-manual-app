@@ -15,7 +15,7 @@ export async function POST(request: NextRequest, { params }: DuplicateRouteProps
 	}
 
 	const { id } = await params;
-	const slug = await duplicateManual(id);
+	await duplicateManual(id);
 
-	return NextResponse.redirect(new URL(`/manuals/${slug}`, request.url), 303);
+	return NextResponse.redirect(new URL("/admin/manuals", request.url), 303);
 }

@@ -41,7 +41,7 @@ export async function POST(request: NextRequest, { params }: ManualRouteProps) {
 	const stepImages = formData.getAll("stepImage");
 	const env = await getEnv();
 
-	const slug = await updateManual({
+	await updateManual({
 		id,
 		title,
 		slug: text(formData, "slug"),
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest, { params }: ManualRouteProps) {
 		),
 	});
 
-	return NextResponse.redirect(new URL(`/manuals/${slug}`, request.url), 303);
+	return NextResponse.redirect(new URL("/admin/manuals", request.url), 303);
 }
 
 async function uploadStepImage(
