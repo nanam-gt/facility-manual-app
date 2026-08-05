@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { BackHomeLink, PageShell } from "@/components/public/page-shell";
 import { getPublicManualBySlug } from "@/lib/db/public-queries";
 import { formatDuration } from "@/lib/manuals/duration";
@@ -34,6 +35,12 @@ export default async function ManualPage({ params }: ManualPageProps) {
 					<div className="mt-5 flex flex-wrap gap-2 text-sm text-[#4f5d43]">
 						{duration ? <span className="rounded-md bg-[#edf1e9] px-2.5 py-1">所要時間 {duration}</span> : null}
 						<span className="rounded-md bg-[#edf1e9] px-2.5 py-1">更新日 {manual.updatedAt}</span>
+						<Link
+							href={`/print/manuals/${manual.slug}`}
+							className="rounded-md border border-[#c9cec1] bg-white px-2.5 py-1 font-semibold text-[#315f3a] hover:border-[#8aa879]"
+						>
+							印刷
+						</Link>
 					</div>
 				</header>
 
