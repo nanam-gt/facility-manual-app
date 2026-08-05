@@ -63,6 +63,14 @@ export default async function PrintManualPage({ params }: PrintManualPageProps) 
 										{index + 1}. {step.title}
 									</h3>
 									{step.description ? <p className="mt-2 leading-7">{step.description}</p> : null}
+									{step.imageObjectKey ? (
+										// eslint-disable-next-line @next/next/no-img-element
+										<img
+											src={`/api/public/images/${step.imageObjectKey}`}
+											alt={step.imageAlt ?? step.title}
+											className="mt-3 max-h-72 w-full rounded-sm border border-[#989f90] object-contain"
+										/>
+									) : null}
 									<div className="mt-3 grid gap-2 text-sm">
 										{step.warning ? (
 											<p>

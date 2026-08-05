@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateManual } from "@/lib/admin/manual-queries";
 import { getCurrentAdmin } from "@/lib/auth/session";
+import { getEnv } from "@/lib/db/client";
 
 const allowedStatuses = new Set(["draft", "published", "private"]);
 const allowedDurationModes = new Set(["manual", "steps_sum", "hidden"]);
@@ -35,6 +36,10 @@ export async function POST(request: NextRequest, { params }: ManualRouteProps) {
 	const stepCompletions = formData.getAll("stepCompletion").map(String);
 	const stepTools = formData.getAll("stepTools").map(String);
 	const stepDurations = formData.getAll("stepDuration").map(String);
+	const stepImageKeys = formData.getAll("stepImageObjectKey").map(String);
+	const stepImageAlts = formData.getAll("stepImageAlt").map(String);
+	const stepImages = formData.getAll("stepImage");
+	const env = await getEnv();
 
 	const slug = await updateManual({
 		id,
@@ -56,17 +61,77 @@ export async function POST(request: NextRequest, { params }: ManualRouteProps) {
 		completionNote: text(formData, "completionNote"),
 		searchKeywords: text(formData, "searchKeywords"),
 		status: status as "draft" | "published" | "private",
-		steps: stepTitles.map((stepTitle, index) => ({
-			title: stepTitle.trim(),
-			description: stepDescriptions[index]?.trim() ?? "",
-			warning: stepWarnings[index]?.trim() ?? "",
-			completionCriteria: stepCompletions[index]?.trim() ?? "",
-			tools: stepTools[index]?.trim() ?? "",
-			durationMinutes: numberOrNull(stepDurations[index] ?? ""),
-		})),
+		steps: await Promise.all(
+			stepTitles.map(async (stepTitle, index) => {
+				const uploaded = await uploadStepImage(env.MANUAL_IMAGES, id, stepImages[index], stepImageAlts[index] ?? "");
+
+				return {
+					title: stepTitle.trim(),
+					description: stepDescriptions[index]?.trim() ?? "",
+					warning: stepWarnings[index]?.trim() ?? "",
+					completionCriteria: stepCompletions[index]?.trim() ?? "",
+					tools: stepTools[index]?.trim() ?? "",
+					durationMinutes: numberOrNull(stepDurations[index] ?? ""),
+					imageObjectKey: uploaded?.objectKey ?? nullable(stepImageKeys[index] ?? ""),
+					imageAlt: uploaded?.imageAlt ?? nullable(stepImageAlts[index] ?? ""),
+					imageWidth: uploaded?.width ?? null,
+					imageHeight: uploaded?.height ?? null,
+					imageMimeType: uploaded?.mimeType ?? null,
+				};
+			}),
+		),
 	});
 
 	return NextResponse.redirect(new URL(`/manuals/${slug}`, request.url), 303);
+}
+
+async function uploadStepImage(
+	bucket: R2Bucket | undefined,
+	manualId: string,
+	value: FormDataEntryValue | undefined,
+	imageAlt: string,
+): Promise<{
+	objectKey: string;
+	imageAlt: string;
+	width: number | null;
+	height: number | null;
+	mimeType: string;
+} | null> {
+	if (!(value instanceof File) || value.size === 0) {
+		return null;
+	}
+
+	if (!bucket) {
+		throw new Error("R2 binding `MANUAL_IMAGES` is not available.");
+	}
+
+	if (value.size > 10 * 1024 * 1024) {
+		throw new Error("Image is too large.");
+	}
+
+	const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+	if (!allowedTypes.has(value.type)) {
+		throw new Error("Unsupported image type.");
+	}
+
+	const extension = value.type === "image/png" ? "png" : value.type === "image/webp" ? "webp" : "jpg";
+	const objectKey = `manuals/${manualId}/steps/${crypto.randomUUID()}.${extension}`;
+	const bytes = await value.arrayBuffer();
+
+	await bucket.put(objectKey, bytes, {
+		httpMetadata: {
+			contentType: value.type,
+			cacheControl: "public, max-age=31536000, immutable",
+		},
+	});
+
+	return {
+		objectKey,
+		imageAlt: imageAlt.trim(),
+		width: null,
+		height: null,
+		mimeType: value.type,
+	};
 }
 
 function text(formData: FormData, key: string): string {
@@ -81,4 +146,9 @@ function numberOrNull(value: string): number | null {
 
 	const parsed = Number(trimmed);
 	return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+}
+
+function nullable(value: string): string | null {
+	const trimmed = value.trim();
+	return trimmed.length > 0 ? trimmed : null;
 }

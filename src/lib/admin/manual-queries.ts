@@ -23,6 +23,11 @@ export type AdminManualStepInput = {
 	completionCriteria?: string;
 	tools?: string;
 	durationMinutes?: number | null;
+	imageObjectKey?: string | null;
+	imageAlt?: string | null;
+	imageWidth?: number | null;
+	imageHeight?: number | null;
+	imageMimeType?: string | null;
 };
 
 export type AdminManualEdit = {
@@ -262,7 +267,12 @@ export async function getAdminManualForEdit(id: string): Promise<AdminManualEdit
 				warning,
 				completion_criteria,
 				tools,
-				duration_minutes
+				duration_minutes,
+				image_object_key,
+				image_alt,
+				image_width,
+				image_height,
+				image_mime_type
 			FROM manual_steps
 			WHERE manual_id = ?
 				AND deleted_at IS NULL
@@ -278,6 +288,11 @@ export async function getAdminManualForEdit(id: string): Promise<AdminManualEdit
 			completion_criteria: string | null;
 			tools: string | null;
 			duration_minutes: number | null;
+			image_object_key: string | null;
+			image_alt: string | null;
+			image_width: number | null;
+			image_height: number | null;
+			image_mime_type: string | null;
 		}>();
 
 	return {
@@ -308,6 +323,11 @@ export async function getAdminManualForEdit(id: string): Promise<AdminManualEdit
 			completionCriteria: step.completion_criteria ?? "",
 			tools: step.tools ?? "",
 			durationMinutes: step.duration_minutes,
+			imageObjectKey: step.image_object_key,
+			imageAlt: step.image_alt,
+			imageWidth: step.image_width,
+			imageHeight: step.image_height,
+			imageMimeType: step.image_mime_type,
 		})),
 	};
 }
@@ -401,11 +421,16 @@ export async function updateManual(input: UpdateManualInput): Promise<string> {
 							completion_criteria,
 							tools,
 							duration_minutes,
+							image_object_key,
+							image_alt,
+							image_width,
+							image_height,
+							image_mime_type,
 							display_order,
 							created_at,
 							updated_at,
 							deleted_at
-						) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
+						) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
 						`,
 					)
 					.bind(
@@ -417,6 +442,11 @@ export async function updateManual(input: UpdateManualInput): Promise<string> {
 						nullable(step.completionCriteria),
 						nullable(step.tools),
 						step.durationMinutes ?? null,
+						step.imageObjectKey ?? null,
+						step.imageAlt ?? null,
+						step.imageWidth ?? null,
+						step.imageHeight ?? null,
+						step.imageMimeType ?? null,
 						(index + 1) * 10,
 						now,
 						now,
@@ -512,11 +542,16 @@ export async function duplicateManual(id: string): Promise<string> {
 						completion_criteria,
 						tools,
 						duration_minutes,
+						image_object_key,
+						image_alt,
+						image_width,
+						image_height,
+						image_mime_type,
 						display_order,
 						created_at,
 						updated_at,
 						deleted_at
-					) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
+					) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
 					`,
 				)
 				.bind(
@@ -528,6 +563,11 @@ export async function duplicateManual(id: string): Promise<string> {
 					nullable(step.completionCriteria),
 					nullable(step.tools),
 					step.durationMinutes ?? null,
+					step.imageObjectKey ?? null,
+					step.imageAlt ?? null,
+					step.imageWidth ?? null,
+					step.imageHeight ?? null,
+					step.imageMimeType ?? null,
 					(index + 1) * 10,
 					now,
 					now,

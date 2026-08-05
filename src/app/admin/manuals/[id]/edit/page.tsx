@@ -120,6 +120,27 @@ export default async function EditManualPage({ params, searchParams }: EditManua
 										type="number"
 									/>
 								</div>
+								<div className="grid gap-3 sm:grid-cols-[1fr_1fr]">
+									<label className="grid gap-2 text-sm font-semibold text-[#4f5d43]">
+										写真
+										<input
+											name="stepImage"
+											type="file"
+											accept="image/jpeg,image/png,image/webp"
+											className="min-h-11 rounded-md border border-[#c9cec1] bg-white px-3 py-2 text-sm font-normal text-[#22251f] file:mr-3 file:rounded-md file:border-0 file:bg-[#edf1e9] file:px-3 file:py-2 file:font-semibold file:text-[#315f3a]"
+										/>
+									</label>
+									<TextInput label="写真の説明" name="stepImageAlt" defaultValue={step?.imageAlt ?? ""} />
+								</div>
+								<input type="hidden" name="stepImageObjectKey" value={step?.imageObjectKey ?? ""} />
+								{step?.imageObjectKey ? (
+									// eslint-disable-next-line @next/next/no-img-element
+									<img
+										src={`/api/public/images/${step.imageObjectKey}`}
+										alt={step.imageAlt ?? ""}
+										className="max-h-56 w-full rounded-md border border-[#e3e6dc] object-cover"
+									/>
+								) : null}
 							</div>
 						))}
 					</div>
