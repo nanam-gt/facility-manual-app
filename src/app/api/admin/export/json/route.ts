@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createBackupExport } from "@/lib/admin/export-queries";
 import { getCurrentAdmin } from "@/lib/auth/session";
+import { formatJstDate } from "@/lib/dates/jst";
 
 export const dynamic = "force-dynamic";
 
@@ -14,12 +15,8 @@ export async function GET() {
 
 	return new NextResponse(JSON.stringify(backup, null, 2), {
 		headers: {
-			"Content-Disposition": `attachment; filename="facility-manual-backup-${dateStamp()}.json"`,
+			"Content-Disposition": `attachment; filename="facility-manual-backup-${formatJstDate()}.json"`,
 			"Content-Type": "application/json; charset=utf-8",
 		},
 	});
-}
-
-function dateStamp() {
-	return new Date().toISOString().slice(0, 10);
 }

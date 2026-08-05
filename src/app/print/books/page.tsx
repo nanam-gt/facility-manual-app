@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatJstDate } from "@/lib/dates/jst";
 import { getPublicManualBook } from "@/lib/db/public-queries";
 import { formatDuration } from "@/lib/manuals/duration";
 
@@ -22,7 +23,7 @@ export default async function PrintBooksPage({ searchParams }: PrintBooksPagePro
 		timingId: params.timingId,
 		manualIds,
 	});
-	const outputDate = new Date().toISOString().slice(0, 10);
+	const outputDate = formatJstDate();
 
 	return (
 		<main className="min-h-screen bg-white text-[#1f241d] print:min-h-0">

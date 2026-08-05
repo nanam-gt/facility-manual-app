@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { formatJstDate } from "@/lib/dates/jst";
 import { getPublicManualBySlug } from "@/lib/db/public-queries";
 import { formatDuration } from "@/lib/manuals/duration";
 
@@ -20,7 +21,7 @@ export default async function PrintManualPage({ params }: PrintManualPageProps) 
 	}
 
 	const duration = formatDuration(manual.durationMinMinutes, manual.durationMaxMinutes, manual.durationNote);
-	const outputDate = new Date().toISOString().slice(0, 10);
+	const outputDate = formatJstDate();
 
 	return (
 		<main className="min-h-screen bg-white text-[#1f241d] print:min-h-0">
