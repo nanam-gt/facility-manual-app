@@ -428,6 +428,136 @@ export async function updateManual(input: UpdateManualInput): Promise<string> {
 	return slug;
 }
 
+export async function duplicateManual(id: string): Promise<string> {
+	const db = await getDb();
+	const source = await getAdminManualForEdit(id);
+
+	if (!source) {
+		throw new Error("Manual not found.");
+	}
+
+	const now = new Date().toISOString();
+	const newId = generateId("manual");
+	const title = `${source.title} コピー`;
+	const slug = await createUniqueSlug(`${source.slug}-copy`);
+	const displayOrder = await getNextManualDisplayOrder(source.areaId, source.timingId);
+	const statements: D1PreparedStatement[] = [
+		db
+			.prepare(
+				`
+				INSERT INTO manuals (
+					id,
+					title,
+					slug,
+					area_id,
+					timing_id,
+					summary,
+					preparation,
+					tools,
+					chemicals,
+					target_staff,
+					frequency,
+					duration_mode,
+					duration_min_minutes,
+					duration_max_minutes,
+					duration_note,
+					general_warning,
+					completion_note,
+					search_keywords,
+					status,
+					display_order,
+					published_at,
+					created_at,
+					updated_at,
+					deleted_at
+				) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, NULL, ?, ?, NULL)
+				`,
+			)
+			.bind(
+				newId,
+				title,
+				slug,
+				source.areaId,
+				source.timingId,
+				source.summary,
+				source.preparation,
+				source.tools,
+				source.chemicals,
+				source.targetStaff,
+				source.frequency,
+				source.durationMode,
+				source.durationMinMinutes,
+				source.durationMaxMinutes,
+				source.durationNote,
+				source.generalWarning,
+				source.completionNote,
+				source.searchKeywords,
+				displayOrder,
+				now,
+				now,
+			),
+	];
+
+	source.steps.forEach((step, index) => {
+		statements.push(
+			db
+				.prepare(
+					`
+					INSERT INTO manual_steps (
+						id,
+						manual_id,
+						title,
+						description,
+						warning,
+						completion_criteria,
+						tools,
+						duration_minutes,
+						display_order,
+						created_at,
+						updated_at,
+						deleted_at
+					) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
+					`,
+				)
+				.bind(
+					generateId("step"),
+					newId,
+					step.title,
+					nullable(step.description),
+					nullable(step.warning),
+					nullable(step.completionCriteria),
+					nullable(step.tools),
+					step.durationMinutes ?? null,
+					(index + 1) * 10,
+					now,
+					now,
+				),
+		);
+	});
+
+	await db.batch(statements);
+	return slug;
+}
+
+export async function softDeleteManual(id: string): Promise<void> {
+	const db = await getDb();
+	const now = new Date().toISOString();
+
+	await db
+		.prepare(
+			`
+			UPDATE manuals
+			SET deleted_at = ?,
+				updated_at = ?,
+				status = 'private'
+			WHERE id = ?
+				AND deleted_at IS NULL
+			`,
+		)
+		.bind(now, now, id)
+		.run();
+}
+
 async function createUniqueSlug(value: string, currentManualId?: string): Promise<string> {
 	const db = await getDb();
 	const baseSlug = toSlug(value) || `manual-${crypto.randomUUID().slice(0, 8)}`;

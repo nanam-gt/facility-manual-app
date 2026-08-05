@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { DeleteManualButton } from "@/components/admin/delete-manual-button";
 import { BackHomeLink, PageShell } from "@/components/public/page-shell";
 import { listAdminManuals } from "@/lib/admin/manual-queries";
 import { getCurrentAdmin } from "@/lib/auth/session";
@@ -64,6 +65,15 @@ export default async function AdminManualsPage() {
 								>
 									編集
 								</Link>
+								<form action={`/api/admin/manuals/${manual.id}/duplicate`} method="post">
+									<button
+										type="submit"
+										className="rounded-md border border-[#c9cec1] px-2.5 py-1 text-sm font-semibold text-[#315f3a] hover:border-[#8aa879]"
+									>
+										複製
+									</button>
+								</form>
+								<DeleteManualButton manualId={manual.id} title={manual.title} />
 							</div>
 						</div>
 					</div>
