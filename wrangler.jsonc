@@ -36,8 +36,7 @@
 		{
 			"binding": "DB",
 			"database_name": "facility-manual-db",
-			// Replace this after creating the real D1 database in Cloudflare.
-			"database_id": "00000000-0000-0000-0000-000000000000",
+			"database_id": "fe6d55ca-fabb-47f4-9832-bbb62ecc7f5f",
 			"migrations_dir": "migrations"
 		}
 	],
