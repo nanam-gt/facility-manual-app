@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { updateManual } from "@/lib/admin/manual-queries";
 import { getCurrentAdmin } from "@/lib/auth/session";
 import { getEnv } from "@/lib/db/client";
+import { detectImageMetadata } from "@/lib/images/metadata";
 
 const allowedStatuses = new Set(["draft", "published", "private"]);
 const allowedDurationModes = new Set(["manual", "steps_sum", "hidden"]);
@@ -117,10 +118,14 @@ async function uploadStepImage(
 	const extension = value.type === "image/png" ? "png" : value.type === "image/webp" ? "webp" : "jpg";
 	const objectKey = `manuals/${manualId}/steps/${crypto.randomUUID()}.${extension}`;
 	const bytes = await value.arrayBuffer();
+	const metadata = detectImageMetadata(bytes);
+	if (!metadata || metadata.mimeType !== value.type) {
+		throw new Error("Invalid image file.");
+	}
 
 	await bucket.put(objectKey, bytes, {
 		httpMetadata: {
-			contentType: value.type,
+			contentType: metadata.mimeType,
 			cacheControl: "public, max-age=31536000, immutable",
 		},
 	});
@@ -128,9 +133,9 @@ async function uploadStepImage(
 	return {
 		objectKey,
 		imageAlt: imageAlt.trim(),
-		width: null,
-		height: null,
-		mimeType: value.type,
+		width: metadata.width,
+		height: metadata.height,
+		mimeType: metadata.mimeType,
 	};
 }
 
