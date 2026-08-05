@@ -58,6 +58,12 @@ export type PublicManualDetail = PublicManualListItem & {
 	steps: PublicManualStep[];
 };
 
+export type PublicManualBook = {
+	title: string;
+	scopeLabel: string;
+	manuals: PublicManualDetail[];
+};
+
 type AreaRow = {
 	id: string;
 	code: string | null;
@@ -573,6 +579,151 @@ export async function getPublicManualBySlug(slug: string): Promise<PublicManualD
 		publishedAt: manual.published_at,
 		steps: steps.map(mapManualStepRow),
 	};
+}
+
+export async function getPublicManualBook(params: {
+	title?: string;
+	areaId?: string;
+	timingId?: string;
+	manualIds?: string[];
+}): Promise<PublicManualBook> {
+	const db = await getDb();
+	const manualIds = params.manualIds?.filter(Boolean).slice(0, 100) ?? [];
+	const filters = [
+		"manuals.status = 'published'",
+		"manuals.deleted_at IS NULL",
+		"areas.is_active = 1",
+		"timings.is_active = 1",
+	];
+	const binds: string[] = [];
+
+	if (params.areaId) {
+		filters.push("manuals.area_id = ?");
+		binds.push(params.areaId);
+	}
+
+	if (params.timingId) {
+		filters.push("manuals.timing_id = ?");
+		binds.push(params.timingId);
+	}
+
+	if (manualIds.length > 0) {
+		filters.push(`manuals.id IN (${manualIds.map(() => "?").join(", ")})`);
+		binds.push(...manualIds);
+	}
+
+	const { results: manualRows } = await db
+		.prepare(
+			`
+			SELECT
+				manuals.id,
+				manuals.title,
+				manuals.slug,
+				manuals.summary,
+				manuals.preparation,
+				manuals.tools,
+				manuals.chemicals,
+				manuals.target_staff,
+				manuals.frequency,
+				manuals.duration_mode,
+				manuals.duration_min_minutes,
+				manuals.duration_max_minutes,
+				manuals.duration_note,
+				manuals.general_warning,
+				manuals.completion_note,
+				manuals.published_at,
+				areas.name AS area_name,
+				timings.name AS timing_name,
+				manuals.updated_at
+			FROM manuals
+			INNER JOIN areas ON areas.id = manuals.area_id
+			INNER JOIN timings ON timings.id = manuals.timing_id
+			WHERE ${filters.join("\n\t\t\t\tAND ")}
+			ORDER BY areas.display_order ASC, timings.display_order ASC, manuals.display_order ASC, manuals.title ASC
+			LIMIT 100
+			`,
+		)
+		.bind(...binds)
+		.all<ManualDetailRow>();
+
+	if (manualRows.length === 0) {
+		return {
+			title: params.title?.trim() || "施設管理マニュアル",
+			scopeLabel: "該当マニュアルなし",
+			manuals: [],
+		};
+	}
+
+	const stepBinds = manualRows.map((manual) => manual.id);
+	const { results: stepRows } = await db
+		.prepare(
+			`
+			SELECT
+				id,
+				manual_id,
+				title,
+				description,
+				warning,
+				completion_criteria,
+				tools,
+				duration_minutes,
+				duration_note,
+				image_object_key,
+				image_alt
+			FROM manual_steps
+			WHERE deleted_at IS NULL
+				AND manual_id IN (${stepBinds.map(() => "?").join(", ")})
+			ORDER BY manual_id ASC, display_order ASC, title ASC
+			`,
+		)
+		.bind(...stepBinds)
+		.all<ManualStepRow & { manual_id: string }>();
+
+	const stepsByManual = new Map<string, ManualStepRow[]>();
+	for (const step of stepRows) {
+		const steps = stepsByManual.get(step.manual_id) ?? [];
+		steps.push(step);
+		stepsByManual.set(step.manual_id, steps);
+	}
+
+	const manuals = manualRows.map((manual) => ({
+		...mapManualListRow(manual),
+		preparation: manual.preparation,
+		tools: manual.tools,
+		chemicals: manual.chemicals,
+		targetStaff: manual.target_staff,
+		frequency: manual.frequency,
+		durationMode: manual.duration_mode,
+		generalWarning: manual.general_warning,
+		completionNote: manual.completion_note,
+		publishedAt: manual.published_at,
+		steps: (stepsByManual.get(manual.id) ?? []).map(mapManualStepRow),
+	}));
+
+	return {
+		title: params.title?.trim() || "施設管理マニュアル",
+		scopeLabel: createBookScopeLabel(manuals),
+		manuals,
+	};
+}
+
+function createBookScopeLabel(manuals: PublicManualDetail[]): string {
+	const areas = Array.from(new Set(manuals.map((manual) => manual.areaName)));
+	const timings = Array.from(new Set(manuals.map((manual) => manual.timingName)));
+
+	if (areas.length === 1 && timings.length === 1) {
+		return `${areas[0]} / ${timings[0]}`;
+	}
+
+	if (areas.length === 1) {
+		return areas[0];
+	}
+
+	if (timings.length === 1) {
+		return timings[0];
+	}
+
+	return "全体";
 }
 
 export async function getPublicHomeData() {

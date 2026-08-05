@@ -86,6 +86,12 @@ export default async function AdminPage() {
 								タイミング管理
 							</Link>
 							<Link
+								href="/admin/books"
+								className="inline-flex min-h-10 items-center rounded-md border border-[#c9cec1] px-3 font-semibold text-[#315f3a] hover:border-[#8aa879]"
+							>
+								ブック印刷
+							</Link>
+							<Link
 								href="/admin/backup"
 								className="inline-flex min-h-10 items-center rounded-md border border-[#c9cec1] px-3 font-semibold text-[#315f3a] hover:border-[#8aa879]"
 							>
