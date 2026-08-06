@@ -1,5 +1,5 @@
 const PASSWORD_ALGORITHM = "pbkdf2_sha256";
-const PASSWORD_ITERATIONS = 210_000;
+const PASSWORD_ITERATIONS = 100_000;
 
 export function generateId(prefix: string): string {
 	return `${prefix}_${crypto.randomUUID().replaceAll("-", "")}`;
