@@ -3,6 +3,7 @@ import { BackHomeLink, PageShell } from "@/components/public/page-shell";
 type AdminLoginPageProps = {
 	searchParams: Promise<{
 		error?: string;
+		saved?: string;
 	}>;
 };
 
@@ -13,7 +14,7 @@ const errorMessages: Record<string, string> = {
 };
 
 export default async function AdminLoginPage({ searchParams }: AdminLoginPageProps) {
-	const { error } = await searchParams;
+	const { error, saved } = await searchParams;
 	const errorMessage = error ? errorMessages[error] : null;
 
 	return (
@@ -29,6 +30,11 @@ export default async function AdminLoginPage({ searchParams }: AdminLoginPagePro
 				</header>
 
 				<form action="/api/admin/auth/login" method="post" className="flex flex-col gap-4 rounded-md border border-[#d9ded2] bg-white p-5">
+					{saved === "password" ? (
+						<p className="rounded-md border border-[#c9d9c5] bg-white p-3 text-sm font-semibold text-[#315f3a]">
+							パスワードを変更しました。新しいパスワードでログインしてください。
+						</p>
+					) : null}
 					{errorMessage ? (
 						<p className="rounded-md border border-[#d8c7a2] bg-[#fff8e8] p-3 text-sm leading-6 text-[#6f5420]">{errorMessage}</p>
 					) : null}

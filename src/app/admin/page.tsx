@@ -97,6 +97,12 @@ export default async function AdminPage() {
 							>
 								バックアップ
 							</Link>
+							<Link
+								href="/admin/settings"
+								className="inline-flex min-h-10 items-center rounded-md border border-[#c9cec1] px-3 font-semibold text-[#315f3a] hover:border-[#8aa879]"
+							>
+								設定
+							</Link>
 						</div>
 					</div>
 				</div>

@@ -158,6 +158,63 @@ export async function revokeCurrentSession(): Promise<void> {
 		.run();
 }
 
+export async function changeAdminPassword(
+	adminId: string,
+	currentPassword: string,
+	newPassword: string,
+): Promise<"changed" | "invalid_current" | "not_found"> {
+	const db = await getDb();
+	const admin = await db
+		.prepare(
+			`
+			SELECT id, email, display_name, password_hash, is_active
+			FROM administrators
+			WHERE id = ?
+				AND is_active = 1
+			LIMIT 1
+			`,
+		)
+		.bind(adminId)
+		.first<AdministratorRow>();
+
+	if (!admin) {
+		return "not_found";
+	}
+
+	const valid = await verifyPassword(currentPassword, admin.password_hash);
+	if (!valid) {
+		return "invalid_current";
+	}
+
+	const now = new Date().toISOString();
+	const passwordHash = await hashPassword(newPassword);
+
+	await db.batch([
+		db
+			.prepare(
+				`
+				UPDATE administrators
+				SET password_hash = ?,
+					updated_at = ?
+				WHERE id = ?
+				`,
+			)
+			.bind(passwordHash, now, adminId),
+		db
+			.prepare(
+				`
+				UPDATE admin_sessions
+				SET revoked_at = ?
+				WHERE administrator_id = ?
+					AND revoked_at IS NULL
+				`,
+			)
+			.bind(now, adminId),
+	]);
+
+	return "changed";
+}
+
 export async function ensureInitialAdmin(): Promise<void> {
 	const env = await getEnv();
 	const email = env.INITIAL_ADMIN_EMAIL?.trim();
