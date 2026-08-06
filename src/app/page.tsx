@@ -10,7 +10,15 @@ export default async function Home() {
 		<main className="min-h-screen bg-[#f6f7f4] text-[#22251f]">
 			<section className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 py-8 sm:px-8 lg:px-10">
 				<header className="flex flex-col gap-4 border-b border-[#d7dbd0] pb-7">
-					<p className="text-sm font-medium text-[#5b6f45]">いちばん星ビレッジ</p>
+					<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+						<p className="text-sm font-medium text-[#5b6f45]">いちばん星ビレッジ</p>
+						<Link
+							href="/admin/login"
+							className="inline-flex min-h-10 w-fit items-center rounded-md border border-[#c9cec1] bg-white px-3 text-sm font-semibold text-[#315f3a] transition hover:border-[#8aa879] focus:outline-none focus:ring-4 focus:ring-[#4f7d3f]/15"
+						>
+							管理者ログイン
+						</Link>
+					</div>
 					<div className="flex flex-col gap-3">
 						<h1 className="text-3xl font-semibold leading-tight sm:text-4xl">施設管理マニュアル</h1>
 						<p className="max-w-2xl text-base leading-7 text-[#5f6559]">
