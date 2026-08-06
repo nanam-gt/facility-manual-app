@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
 		return NextResponse.redirect(new URL("/admin/manuals/new?error=required", request.url), 303);
 	}
 
-	await createManual({
+	const manual = await createManual({
 		title,
 		slug: String(formData.get("slug") ?? "").trim(),
 		areaId,
@@ -35,5 +35,5 @@ export async function POST(request: NextRequest) {
 		status: statusRaw as "draft" | "published" | "private",
 	});
 
-	return NextResponse.redirect(new URL("/admin/manuals?saved=created", request.url), 303);
+	return NextResponse.redirect(new URL(`/admin/manuals/${manual.id}/edit?saved=created`, request.url), 303);
 }

@@ -12,6 +12,7 @@ type EditManualPageProps = {
 	}>;
 	searchParams: Promise<{
 		error?: string;
+		saved?: string;
 	}>;
 };
 
@@ -22,7 +23,7 @@ export default async function EditManualPage({ params, searchParams }: EditManua
 	}
 
 	const { id } = await params;
-	const { error } = await searchParams;
+	const { error, saved } = await searchParams;
 	const [manual, options] = await Promise.all([getAdminManualForEdit(id), getManualFormOptions()]);
 
 	if (!manual) {
@@ -44,6 +45,11 @@ export default async function EditManualPage({ params, searchParams }: EditManua
 				{error ? (
 					<p className="rounded-md border border-[#d8c7a2] bg-[#fff8e8] p-3 text-sm leading-6 text-[#6f5420]">
 						必須項目を確認してください。
+					</p>
+				) : null}
+				{saved === "created" ? (
+					<p className="rounded-md border border-[#c9d9c5] bg-white p-3 text-sm font-semibold text-[#315f3a]">
+						基本情報を作成しました。続けて手順や写真を登録できます。
 					</p>
 				) : null}
 

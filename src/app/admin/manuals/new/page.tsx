@@ -27,7 +27,7 @@ export default async function NewManualPage({ searchParams }: NewManualPageProps
 			<header className="border-b border-[#d7dbd0] pb-6">
 				<p className="text-sm font-medium text-[#5b6f45]">管理画面</p>
 				<h1 className="mt-2 text-3xl font-semibold leading-tight">マニュアル新規作成</h1>
-				<p className="mt-3 text-sm leading-6 text-[#5f6559]">まず基本情報を登録します。手順や写真は続くフェーズで編集できるようにします。</p>
+				<p className="mt-3 text-sm leading-6 text-[#5f6559]">まず基本情報を登録します。保存後、そのまま手順や写真を登録できます。</p>
 			</header>
 
 			<DirtyForm action="/api/admin/manuals" method="post" className="grid gap-5 rounded-md border border-[#d9ded2] bg-white p-5">

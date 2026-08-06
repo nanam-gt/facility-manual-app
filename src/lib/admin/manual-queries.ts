@@ -197,7 +197,7 @@ export async function getManualFormOptions(): Promise<{
 	};
 }
 
-export async function createManual(input: CreateManualInput): Promise<string> {
+export async function createManual(input: CreateManualInput): Promise<{ id: string; slug: string }> {
 	const db = await getDb();
 	const now = new Date().toISOString();
 	const slug = await createUniqueSlug(input.slug || input.title);
@@ -239,7 +239,7 @@ export async function createManual(input: CreateManualInput): Promise<string> {
 		)
 		.run();
 
-	return slug;
+	return { id, slug };
 }
 
 export async function getAdminManualForEdit(id: string): Promise<AdminManualEdit | null> {
