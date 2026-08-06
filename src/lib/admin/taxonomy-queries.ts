@@ -211,6 +211,66 @@ export async function upsertTiming(input: UpsertTimingInput): Promise<void> {
 		.run();
 }
 
+export async function deleteAreaIfUnused(id: string): Promise<"deleted" | "in_use" | "not_found"> {
+	const db = await getDb();
+	const area = await db
+		.prepare(
+			`
+			SELECT areas.id, COUNT(manuals.id) AS manual_count
+			FROM areas
+			LEFT JOIN manuals
+				ON manuals.area_id = areas.id
+				AND manuals.deleted_at IS NULL
+			WHERE areas.id = ?
+			GROUP BY areas.id
+			`,
+		)
+		.bind(id)
+		.first<{ id: string; manual_count: number }>();
+
+	if (!area) {
+		return "not_found";
+	}
+
+	if (area.manual_count > 0) {
+		return "in_use";
+	}
+
+	await db.prepare("DELETE FROM areas WHERE id = ?").bind(id).run();
+
+	return "deleted";
+}
+
+export async function deleteTimingIfUnused(id: string): Promise<"deleted" | "in_use" | "not_found"> {
+	const db = await getDb();
+	const timing = await db
+		.prepare(
+			`
+			SELECT timings.id, COUNT(manuals.id) AS manual_count
+			FROM timings
+			LEFT JOIN manuals
+				ON manuals.timing_id = timings.id
+				AND manuals.deleted_at IS NULL
+			WHERE timings.id = ?
+			GROUP BY timings.id
+			`,
+		)
+		.bind(id)
+		.first<{ id: string; manual_count: number }>();
+
+	if (!timing) {
+		return "not_found";
+	}
+
+	if (timing.manual_count > 0) {
+		return "in_use";
+	}
+
+	await db.prepare("DELETE FROM timings WHERE id = ?").bind(id).run();
+
+	return "deleted";
+}
+
 function nullable(value: string | undefined | null): string | null {
 	const trimmed = value?.trim() ?? "";
 	return trimmed.length > 0 ? trimmed : null;

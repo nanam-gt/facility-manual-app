@@ -1,16 +1,31 @@
 import { redirect } from "next/navigation";
+import { DeleteTaxonomyButton } from "@/components/admin/delete-taxonomy-button";
 import { BackHomeLink, PageShell } from "@/components/public/page-shell";
 import { listAdminAreas } from "@/lib/admin/taxonomy-queries";
 import { getCurrentAdmin } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminAreasPage() {
+const savedMessages: Record<string, string> = {
+	deleted: "エリアを削除しました。",
+	in_use: "使用中のマニュアルがあるため削除できません。有効チェックを外すと一覧には出なくなります。",
+	not_found: "対象のエリアが見つかりませんでした。",
+};
+
+type AdminAreasPageProps = {
+	searchParams: Promise<{
+		saved?: string;
+		error?: string;
+	}>;
+};
+
+export default async function AdminAreasPage({ searchParams }: AdminAreasPageProps) {
 	const admin = await getCurrentAdmin();
 	if (!admin) {
 		redirect("/admin/login");
 	}
 
+	const params = await searchParams;
 	const areas = await listAdminAreas();
 
 	return (
@@ -21,6 +36,17 @@ export default async function AdminAreasPage() {
 				<h1 className="mt-2 text-3xl font-semibold leading-tight">エリア管理</h1>
 				<p className="mt-3 text-sm leading-6 text-[#5f6559]">エリア名、表示順、有効状態を管理します。</p>
 			</header>
+
+			{params.saved && savedMessages[params.saved] ? (
+				<p className="rounded-md border border-[#c9d9c5] bg-white p-3 text-sm font-semibold text-[#315f3a]">
+					{savedMessages[params.saved]}
+				</p>
+			) : null}
+			{params.error ? (
+				<p className="rounded-md border border-[#d8c7a2] bg-[#fff8e8] p-3 text-sm leading-6 text-[#6f5420]">
+					名称を確認してください。
+				</p>
+			) : null}
 
 			<section className="grid gap-4">
 				<AreaForm />
@@ -71,12 +97,22 @@ function AreaForm({ area }: AreaFormProps) {
 					<input name="isActive" type="checkbox" defaultChecked={area?.isActive ?? true} className="size-4" />
 					有効
 				</label>
-				<button
-					type="submit"
-					className="min-h-11 rounded-md bg-[#2f5f3b] px-4 text-sm font-semibold text-white transition hover:bg-[#244b2e] focus:outline-none focus:ring-4 focus:ring-[#2f5f3b]/25"
-				>
-					{area ? "更新" : "追加"}
-				</button>
+				<div className="flex flex-wrap gap-2">
+					{area ? (
+						<DeleteTaxonomyButton
+							action={`/api/admin/areas/${area.id}/delete`}
+							label="削除"
+							name={area.name}
+							disabled={area.manualCount > 0}
+						/>
+					) : null}
+					<button
+						type="submit"
+						className="min-h-11 rounded-md bg-[#2f5f3b] px-4 text-sm font-semibold text-white transition hover:bg-[#244b2e] focus:outline-none focus:ring-4 focus:ring-[#2f5f3b]/25"
+					>
+						{area ? "更新" : "追加"}
+					</button>
+				</div>
 			</div>
 		</form>
 	);
