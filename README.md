@@ -39,3 +39,27 @@ CloudflareやGitHubの設定時は、以下も参照してください。
 ## 注意
 
 この資料は設計と実装方針を定義するものです。Codexは、実装前に必ず既存ファイルと最新の公式ドキュメントを確認し、破壊的変更を避けてください。
+
+## 本番公開前チェック
+
+Cloudflareへ公開する前に、以下を確認してください。
+
+1. Cloudflare D1 `facility-manual-db` に最新マイグレーションを適用する
+2. Cloudflare R2 `facility-manual-images` が有効になっていることを確認する
+3. Workers secrets に以下を設定する
+   - `SESSION_SECRET`
+   - `INITIAL_ADMIN_EMAIL`
+   - `INITIAL_ADMIN_PASSWORD`
+4. `npm run lint`
+5. `npm run typecheck`
+6. `npm run build`
+7. `npx opennextjs-cloudflare build`
+8. Cloudflareへデプロイ
+9. 公開URLで以下を確認する
+   - トップページ
+   - 検索
+   - 管理ログイン
+   - マニュアル作成
+   - 写真アップロード
+   - 印刷
+   - バックアップ出力
