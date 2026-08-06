@@ -9,7 +9,18 @@ export async function GET(request: NextRequest) {
 		q: searchParams.get("q") ?? undefined,
 		areaId: searchParams.get("areaId") ?? undefined,
 		timingId: searchParams.get("timingId") ?? undefined,
+		page: numberParam(searchParams.get("page")),
+		limit: numberParam(searchParams.get("limit")),
 	});
 
 	return NextResponse.json({ manuals });
+}
+
+function numberParam(value: string | null): number | undefined {
+	if (!value) {
+		return undefined;
+	}
+
+	const parsed = Number(value);
+	return Number.isFinite(parsed) ? parsed : undefined;
 }

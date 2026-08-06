@@ -427,11 +427,16 @@ export async function searchPublicManuals(params: {
 	q?: string;
 	timingId?: string;
 	areaId?: string;
+	page?: number;
+	limit?: number;
 }): Promise<PublicManualListItem[]> {
 	const db = await getDb();
 	const q = params.q?.trim() ?? "";
 	const likeQuery = `%${q}%`;
 	const hasQuery = q.length > 0;
+	const limit = clampInteger(params.limit ?? 50, 1, 100);
+	const page = clampInteger(params.page ?? 1, 1, 1000);
+	const offset = (page - 1) * limit;
 
 	const { results } = await db
 		.prepare(
@@ -474,7 +479,8 @@ export async function searchPublicManuals(params: {
 					OR manual_steps.completion_criteria LIKE ?
 				)
 			ORDER BY manuals.updated_at DESC, manuals.display_order ASC
-			LIMIT 50
+			LIMIT ?
+			OFFSET ?
 			`,
 		)
 		.bind(
@@ -495,10 +501,20 @@ export async function searchPublicManuals(params: {
 			likeQuery,
 			likeQuery,
 			likeQuery,
+			limit,
+			offset,
 		)
 		.all<ManualListRow>();
 
 	return results.map(mapManualListRow);
+}
+
+function clampInteger(value: number, min: number, max: number): number {
+	if (!Number.isFinite(value)) {
+		return min;
+	}
+
+	return Math.min(Math.max(Math.trunc(value), min), max);
 }
 
 export async function getPublicManualBySlug(slug: string): Promise<PublicManualDetail | null> {
