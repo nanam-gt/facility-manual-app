@@ -48,46 +48,51 @@ export async function POST(request: NextRequest, { params }: ManualRouteProps) {
 	const stepImages = formData.getAll("stepImage");
 	const env = await getEnv();
 
-	await updateManual({
-		id,
-		title,
-		slug: text(formData, "slug"),
-		areaId,
-		timingId,
-		summary: text(formData, "summary"),
-		preparation: text(formData, "preparation"),
-		tools: text(formData, "tools"),
-		chemicals: text(formData, "chemicals"),
-		targetStaff: text(formData, "targetStaff"),
-		frequency: text(formData, "frequency"),
-		durationMode: durationMode as "manual" | "steps_sum" | "hidden",
-		durationMinMinutes: numberOrNull(text(formData, "durationMinMinutes")),
-		durationMaxMinutes: numberOrNull(text(formData, "durationMaxMinutes")),
-		durationNote: text(formData, "durationNote"),
-		generalWarning: text(formData, "generalWarning"),
-		completionNote: text(formData, "completionNote"),
-		searchKeywords: text(formData, "searchKeywords"),
-		status: status as "draft" | "published" | "private",
-		steps: await Promise.all(
-			stepTitles.map(async (stepTitle, index) => {
-				const uploaded = await uploadStepImage(env.MANUAL_IMAGES, id, stepImages[index], stepImageAlts[index] ?? "");
+	try {
+		await updateManual({
+			id,
+			title,
+			slug: text(formData, "slug"),
+			areaId,
+			timingId,
+			summary: text(formData, "summary"),
+			preparation: text(formData, "preparation"),
+			tools: text(formData, "tools"),
+			chemicals: text(formData, "chemicals"),
+			targetStaff: text(formData, "targetStaff"),
+			frequency: text(formData, "frequency"),
+			durationMode: durationMode as "manual" | "steps_sum" | "hidden",
+			durationMinMinutes: numberOrNull(text(formData, "durationMinMinutes")),
+			durationMaxMinutes: numberOrNull(text(formData, "durationMaxMinutes")),
+			durationNote: text(formData, "durationNote"),
+			generalWarning: text(formData, "generalWarning"),
+			completionNote: text(formData, "completionNote"),
+			searchKeywords: text(formData, "searchKeywords"),
+			status: status as "draft" | "published" | "private",
+			steps: await Promise.all(
+				stepTitles.map(async (stepTitle, index) => {
+					const uploaded = await uploadStepImage(env.MANUAL_IMAGES, id, stepImages[index], stepImageAlts[index] ?? "");
 
-				return {
-					title: stepTitle.trim(),
-					description: stepDescriptions[index]?.trim() ?? "",
-					warning: stepWarnings[index]?.trim() ?? "",
-					completionCriteria: stepCompletions[index]?.trim() ?? "",
-					tools: stepTools[index]?.trim() ?? "",
-					durationMinutes: numberOrNull(stepDurations[index] ?? ""),
-					imageObjectKey: uploaded?.objectKey ?? nullable(stepImageKeys[index] ?? ""),
-					imageAlt: uploaded?.imageAlt ?? nullable(stepImageAlts[index] ?? ""),
-					imageWidth: uploaded?.width ?? null,
-					imageHeight: uploaded?.height ?? null,
-					imageMimeType: uploaded?.mimeType ?? null,
-				};
-			}),
-		),
-	});
+					return {
+						title: stepTitle.trim(),
+						description: stepDescriptions[index]?.trim() ?? "",
+						warning: stepWarnings[index]?.trim() ?? "",
+						completionCriteria: stepCompletions[index]?.trim() ?? "",
+						tools: stepTools[index]?.trim() ?? "",
+						durationMinutes: numberOrNull(stepDurations[index] ?? ""),
+						imageObjectKey: uploaded?.objectKey ?? nullable(stepImageKeys[index] ?? ""),
+						imageAlt: uploaded?.imageAlt ?? nullable(stepImageAlts[index] ?? ""),
+						imageWidth: uploaded?.width ?? null,
+						imageHeight: uploaded?.height ?? null,
+						imageMimeType: uploaded?.mimeType ?? null,
+					};
+				}),
+			),
+		});
+	} catch (error) {
+		console.error("Manual update failed", error);
+		return NextResponse.redirect(new URL(`/admin/manuals/${id}/edit?error=image`, request.url), 303);
+	}
 
 	return NextResponse.redirect(new URL("/admin/manuals?saved=updated", request.url), 303);
 }

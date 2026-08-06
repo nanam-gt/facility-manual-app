@@ -44,7 +44,9 @@ export default async function EditManualPage({ params, searchParams }: EditManua
 			<DirtyForm action={`/api/admin/manuals/${manual.id}`} method="post" className="grid gap-6" encType="multipart/form-data">
 				{error ? (
 					<p className="rounded-md border border-[#d8c7a2] bg-[#fff8e8] p-3 text-sm leading-6 text-[#6f5420]">
-						必須項目を確認してください。
+						{error === "image"
+							? "写真ファイルを確認してください。JPEG、PNG、WebPのみ、1枚10MBまで登録できます。"
+							: "必須項目を確認してください。"}
 					</p>
 				) : null}
 				{saved === "created" ? (
