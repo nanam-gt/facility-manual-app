@@ -90,7 +90,8 @@ export async function POST(request: NextRequest, { params }: ManualRouteProps) {
 						};
 					}
 
-					const uploaded = await uploadStepImage(env.MANUAL_IMAGES, id, stepImages[index], stepImageAlts[index] ?? "");
+					const existingImageObjectKey = nullable(stepImageKeys[index] ?? "");
+					const uploaded = await uploadStepImageSafely(env.MANUAL_IMAGES, id, stepImages[index], stepImageAlts[index] ?? "");
 
 					return {
 						title,
@@ -99,7 +100,7 @@ export async function POST(request: NextRequest, { params }: ManualRouteProps) {
 						completionCriteria: stepCompletions[index]?.trim() ?? "",
 						tools: stepTools[index]?.trim() ?? "",
 						durationMinutes: numberOrNull(stepDurations[index] ?? ""),
-						imageObjectKey: uploaded?.objectKey ?? nullable(stepImageKeys[index] ?? ""),
+						imageObjectKey: uploaded?.objectKey ?? existingImageObjectKey,
 						imageAlt: uploaded?.imageAlt ?? nullable(stepImageAlts[index] ?? ""),
 						imageWidth: uploaded?.width ?? null,
 						imageHeight: uploaded?.height ?? null,
@@ -115,6 +116,20 @@ export async function POST(request: NextRequest, { params }: ManualRouteProps) {
 	}
 
 	return NextResponse.redirect(new URL("/admin/manuals?saved=updated", request.url), 303);
+}
+
+async function uploadStepImageSafely(
+	bucket: R2Bucket | undefined,
+	manualId: string,
+	value: FormDataEntryValue | undefined,
+	imageAlt: string,
+) {
+	try {
+		return await uploadStepImage(bucket, manualId, value, imageAlt);
+	} catch (error) {
+		console.error("Step image upload skipped", error);
+		return null;
+	}
 }
 
 async function uploadStepImage(
