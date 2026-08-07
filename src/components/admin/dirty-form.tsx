@@ -14,6 +14,8 @@ export function DirtyForm({ action, method = "post", encType, className, childre
 	const [dirty, setDirty] = useState(false);
 
 	useEffect(() => {
+		document.body.dataset.formDirty = dirty ? "true" : "false";
+
 		if (!dirty) {
 			return;
 		}
@@ -27,6 +29,7 @@ export function DirtyForm({ action, method = "post", encType, className, childre
 
 		return () => {
 			window.removeEventListener("beforeunload", handleBeforeUnload);
+			document.body.dataset.formDirty = "false";
 		};
 	}, [dirty]);
 
@@ -38,6 +41,13 @@ export function DirtyForm({ action, method = "post", encType, className, childre
 			className={className}
 			onChangeCapture={() => setDirty(true)}
 			onInputCapture={() => setDirty(true)}
+			onClickCapture={(event) => {
+				const target = event.target as HTMLElement;
+				const leaveTarget = target.closest("[data-confirm-unsaved]");
+				if (leaveTarget && dirty && !window.confirm("保存していない変更があります。保存せずに戻りますか？")) {
+					event.preventDefault();
+				}
+			}}
 			onSubmit={() => setDirty(false)}
 		>
 			{children}

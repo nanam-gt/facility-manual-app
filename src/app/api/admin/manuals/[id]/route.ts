@@ -71,10 +71,27 @@ export async function POST(request: NextRequest, { params }: ManualRouteProps) {
 			status: status as "draft" | "published" | "private",
 			steps: await Promise.all(
 				stepTitles.map(async (stepTitle, index) => {
+					const title = stepTitle.trim();
+					if (!title) {
+						return {
+							title,
+							description: "",
+							warning: "",
+							completionCriteria: "",
+							tools: "",
+							durationMinutes: null,
+							imageObjectKey: null,
+							imageAlt: null,
+							imageWidth: null,
+							imageHeight: null,
+							imageMimeType: null,
+						};
+					}
+
 					const uploaded = await uploadStepImage(env.MANUAL_IMAGES, id, stepImages[index], stepImageAlts[index] ?? "");
 
 					return {
-						title: stepTitle.trim(),
+						title,
 						description: stepDescriptions[index]?.trim() ?? "",
 						warning: stepWarnings[index]?.trim() ?? "",
 						completionCriteria: stepCompletions[index]?.trim() ?? "",
@@ -109,7 +126,7 @@ async function uploadStepImage(
 	height: number | null;
 	mimeType: string;
 } | null> {
-	if (!(value instanceof File) || value.size === 0) {
+	if (!(value instanceof File) || value.size === 0 || !value.name) {
 		return null;
 	}
 

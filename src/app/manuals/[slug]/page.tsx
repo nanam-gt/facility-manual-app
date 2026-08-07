@@ -45,7 +45,6 @@ export default async function ManualPage({ params }: ManualPageProps) {
 				</header>
 
 				<section className="grid gap-3 sm:grid-cols-2">
-					<InfoBlock title="準備するもの" value={manual.preparation} />
 					<InfoBlock title="使用する道具" value={manual.tools} />
 					<InfoBlock title="使用する洗剤" value={manual.chemicals} />
 					<InfoBlock title="対象者・頻度" value={[manual.targetStaff, manual.frequency].filter(Boolean).join(" / ")} />

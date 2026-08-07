@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { DirtyForm } from "@/components/admin/dirty-form";
+import { ManualStepsEditor } from "@/components/admin/manual-steps-editor";
 import { BackHomeLink, PageShell } from "@/components/public/page-shell";
 import { getAdminManualForEdit, getManualFormOptions } from "@/lib/admin/manual-queries";
 import { getCurrentAdmin } from "@/lib/auth/session";
@@ -30,8 +31,6 @@ export default async function EditManualPage({ params, searchParams }: EditManua
 		notFound();
 	}
 
-	const stepRows = [...manual.steps, ...Array.from({ length: Math.max(2, 5 - manual.steps.length) }, () => null)];
-
 	return (
 		<PageShell>
 			<BackHomeLink />
@@ -42,6 +41,16 @@ export default async function EditManualPage({ params, searchParams }: EditManua
 			</header>
 
 			<DirtyForm action={`/api/admin/manuals/${manual.id}`} method="post" className="grid gap-6" encType="multipart/form-data">
+				<div className="flex flex-wrap items-center justify-between gap-3">
+					<a
+						href="/admin/manuals"
+						data-confirm-unsaved
+						className="inline-flex min-h-11 items-center rounded-md border border-[#c9cec1] bg-white px-4 text-sm font-semibold text-[#315f3a] transition hover:border-[#8aa879] focus:outline-none focus:ring-4 focus:ring-[#4f7d3f]/15"
+					>
+						マニュアル一覧へ戻る
+					</a>
+				</div>
+
 				{error ? (
 					<p className="rounded-md border border-[#d8c7a2] bg-[#fff8e8] p-3 text-sm leading-6 text-[#6f5420]">
 						{error === "image"
@@ -69,7 +78,6 @@ export default async function EditManualPage({ params, searchParams }: EditManua
 				<section className="grid gap-5 rounded-md border border-[#d9ded2] bg-white p-5">
 					<h2 className="text-xl font-semibold">作業情報</h2>
 					<div className="grid gap-4 sm:grid-cols-2">
-						<TextArea label="準備するもの" name="preparation" defaultValue={manual.preparation} rows={3} />
 						<TextArea label="使用する道具" name="tools" defaultValue={manual.tools} rows={3} />
 						<TextArea label="使用する洗剤" name="chemicals" defaultValue={manual.chemicals} rows={3} />
 						<TextArea label="検索用キーワード" name="searchKeywords" defaultValue={manual.searchKeywords} rows={3} />
@@ -108,52 +116,19 @@ export default async function EditManualPage({ params, searchParams }: EditManua
 					<TextArea label="完了時の確認事項" name="completionNote" defaultValue={manual.completionNote} rows={3} />
 				</section>
 
-				<section className="grid gap-5 rounded-md border border-[#d9ded2] bg-white p-5">
-					<h2 className="text-xl font-semibold">手順</h2>
-					<div className="grid gap-4">
-						{stepRows.map((step, index) => (
-							<div key={step?.id ?? `new-${index}`} className="grid gap-3 rounded-md border border-[#e3e6dc] p-4">
-								<p className="text-sm font-semibold text-[#4f5d43]">手順 {index + 1}</p>
-								<TextInput label="手順名" name="stepTitle" defaultValue={step?.title ?? ""} />
-								<TextArea label="説明" name="stepDescription" defaultValue={step?.description ?? ""} rows={3} />
-								<div className="grid gap-3 sm:grid-cols-2">
-									<TextArea label="注意点" name="stepWarning" defaultValue={step?.warning ?? ""} rows={3} />
-									<TextArea label="完了基準" name="stepCompletion" defaultValue={step?.completionCriteria ?? ""} rows={3} />
-								</div>
-								<div className="grid gap-3 sm:grid-cols-[1fr_160px]">
-									<TextInput label="道具" name="stepTools" defaultValue={step?.tools ?? ""} />
-									<TextInput
-										label="所要分"
-										name="stepDuration"
-										defaultValue={step?.durationMinutes?.toString() ?? ""}
-										type="number"
-									/>
-								</div>
-								<div className="grid gap-3 sm:grid-cols-[1fr_1fr]">
-									<label className="grid gap-2 text-sm font-semibold text-[#4f5d43]">
-										写真
-										<input
-											name="stepImage"
-											type="file"
-											accept="image/jpeg,image/png,image/webp"
-											className="min-h-11 rounded-md border border-[#c9cec1] bg-white px-3 py-2 text-sm font-normal text-[#22251f] file:mr-3 file:rounded-md file:border-0 file:bg-[#edf1e9] file:px-3 file:py-2 file:font-semibold file:text-[#315f3a]"
-										/>
-									</label>
-									<TextInput label="写真の説明" name="stepImageAlt" defaultValue={step?.imageAlt ?? ""} />
-								</div>
-								<input type="hidden" name="stepImageObjectKey" value={step?.imageObjectKey ?? ""} />
-								{step?.imageObjectKey ? (
-									// eslint-disable-next-line @next/next/no-img-element
-									<img
-										src={`/api/public/images/${step.imageObjectKey}`}
-										alt={step.imageAlt ?? ""}
-										className="max-h-56 w-full rounded-md border border-[#e3e6dc] object-cover"
-									/>
-								) : null}
-							</div>
-						))}
-					</div>
-				</section>
+				<ManualStepsEditor
+					initialSteps={manual.steps.map((step) => ({
+						id: step.id,
+						title: step.title,
+						description: step.description ?? "",
+						warning: step.warning ?? "",
+						completionCriteria: step.completionCriteria ?? "",
+						tools: step.tools ?? "",
+						durationMinutes: step.durationMinutes ?? null,
+						imageObjectKey: step.imageObjectKey ?? null,
+						imageAlt: step.imageAlt ?? null,
+					}))}
+				/>
 
 				<section className="grid gap-5 rounded-md border border-[#d9ded2] bg-white p-5">
 					<h2 className="text-xl font-semibold">公開設定</h2>
