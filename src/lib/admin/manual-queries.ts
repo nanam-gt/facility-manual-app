@@ -473,7 +473,7 @@ export async function updateManual(input: UpdateManualInput): Promise<string> {
 							created_at,
 							updated_at,
 							deleted_at
-						) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
+						) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
 						`,
 					)
 					.bind(
@@ -594,7 +594,7 @@ export async function duplicateManual(id: string): Promise<string> {
 						created_at,
 						updated_at,
 						deleted_at
-					) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
+					) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
 					`,
 				)
 				.bind(
