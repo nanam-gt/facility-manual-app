@@ -8,6 +8,8 @@ import { detectImageMetadata } from "@/lib/images/metadata";
 const allowedStatuses = new Set(["draft", "published", "private"]);
 const allowedDurationModes = new Set(["manual", "steps_sum", "hidden"]);
 
+class ImageUploadError extends Error {}
+
 type ManualRouteProps = {
 	params: Promise<{
 		id: string;
@@ -108,7 +110,8 @@ export async function POST(request: NextRequest, { params }: ManualRouteProps) {
 		});
 	} catch (error) {
 		console.error("Manual update failed", error);
-		return NextResponse.redirect(new URL(`/admin/manuals/${id}/edit?error=image`, request.url), 303);
+		const errorCode = error instanceof ImageUploadError ? "image" : "save";
+		return NextResponse.redirect(new URL(`/admin/manuals/${id}/edit?error=${errorCode}`, request.url), 303);
 	}
 
 	return NextResponse.redirect(new URL("/admin/manuals?saved=updated", request.url), 303);
@@ -135,12 +138,12 @@ async function uploadStepImage(
 	}
 
 	if (value.size > 10 * 1024 * 1024) {
-		throw new Error("Image is too large.");
+		throw new ImageUploadError("Image is too large.");
 	}
 
 	const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 	if (!allowedTypes.has(value.type)) {
-		throw new Error("Unsupported image type.");
+		throw new ImageUploadError("Unsupported image type.");
 	}
 
 	const extension = value.type === "image/png" ? "png" : value.type === "image/webp" ? "webp" : "jpg";
@@ -148,7 +151,7 @@ async function uploadStepImage(
 	const bytes = await value.arrayBuffer();
 	const metadata = detectImageMetadata(bytes);
 	if (!metadata || metadata.mimeType !== value.type) {
-		throw new Error("Invalid image file.");
+		throw new ImageUploadError("Invalid image file.");
 	}
 
 	await bucket.put(objectKey, bytes, {

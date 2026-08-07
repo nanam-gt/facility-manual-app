@@ -55,6 +55,8 @@ export default async function EditManualPage({ params, searchParams }: EditManua
 					<p className="rounded-md border border-[#d8c7a2] bg-[#fff8e8] p-3 text-sm leading-6 text-[#6f5420]">
 						{error === "image"
 							? "写真ファイルを確認してください。JPEG、PNG、WebPのみ、1枚10MBまで登録できます。"
+							: error === "save"
+								? "保存に失敗しました。入力内容を確認して、もう一度保存してください。"
 							: "必須項目を確認してください。"}
 					</p>
 				) : null}
