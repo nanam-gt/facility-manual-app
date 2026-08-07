@@ -34,6 +34,7 @@ function emptyStep(): ManualStepEditorValue {
 
 export function ManualStepsEditor({ initialSteps }: ManualStepsEditorProps) {
 	const [steps, setSteps] = useState<ManualStepEditorValue[]>(initialSteps.length > 0 ? initialSteps : [emptyStep()]);
+	const markDirty = () => document.dispatchEvent(new Event("manual-form-dirty"));
 
 	return (
 		<section className="grid gap-5 rounded-md border border-[#d9ded2] bg-white p-5">
@@ -41,7 +42,10 @@ export function ManualStepsEditor({ initialSteps }: ManualStepsEditorProps) {
 				<h2 className="text-xl font-semibold">手順</h2>
 				<button
 					type="button"
-					onClick={() => setSteps((current) => [...current, emptyStep()])}
+					onClick={() => {
+						markDirty();
+						setSteps((current) => [...current, emptyStep()]);
+					}}
 					className="min-h-11 rounded-md border border-[#c9cec1] bg-white px-4 text-sm font-semibold text-[#315f3a] transition hover:border-[#8aa879] focus:outline-none focus:ring-4 focus:ring-[#4f7d3f]/15"
 				>
 					+ 手順を追加
@@ -54,9 +58,12 @@ export function ManualStepsEditor({ initialSteps }: ManualStepsEditorProps) {
 							<p className="text-sm font-semibold text-[#4f5d43]">手順 {index + 1}</p>
 							<button
 								type="button"
-								onClick={() =>
-									setSteps((current) => (current.length <= 1 ? [emptyStep()] : current.filter((_, stepIndex) => stepIndex !== index)))
-								}
+								onClick={() => {
+									markDirty();
+									setSteps((current) =>
+										current.length <= 1 ? [emptyStep()] : current.filter((_, stepIndex) => stepIndex !== index),
+									);
+								}}
 								className="inline-flex min-h-9 items-center gap-2 rounded-md border border-[#d8c7a2] px-3 text-sm font-semibold text-[#6f5420] transition hover:border-[#b9914b] focus:outline-none focus:ring-4 focus:ring-[#b9914b]/15"
 								aria-label={`手順${index + 1}を削除`}
 								title="手順を削除"

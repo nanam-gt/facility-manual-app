@@ -33,6 +33,15 @@ export function DirtyForm({ action, method = "post", encType, className, childre
 		};
 	}, [dirty]);
 
+	useEffect(() => {
+		const markDirty = () => setDirty(true);
+		document.addEventListener("manual-form-dirty", markDirty);
+
+		return () => {
+			document.removeEventListener("manual-form-dirty", markDirty);
+		};
+	}, []);
+
 	return (
 		<form
 			action={action}

@@ -126,7 +126,7 @@ async function uploadStepImage(
 	height: number | null;
 	mimeType: string;
 } | null> {
-	if (!(value instanceof File) || value.size === 0 || !value.name) {
+	if (!isUploadFile(value) || value.size === 0 || !value.name) {
 		return null;
 	}
 
@@ -184,4 +184,19 @@ function numberOrNull(value: string): number | null {
 function nullable(value: string): string | null {
 	const trimmed = value.trim();
 	return trimmed.length > 0 ? trimmed : null;
+}
+
+function isUploadFile(value: FormDataEntryValue | undefined): value is File {
+	return (
+		typeof value === "object" &&
+		value !== null &&
+		"arrayBuffer" in value &&
+		typeof value.arrayBuffer === "function" &&
+		"size" in value &&
+		typeof value.size === "number" &&
+		"type" in value &&
+		typeof value.type === "string" &&
+		"name" in value &&
+		typeof value.name === "string"
+	);
 }
