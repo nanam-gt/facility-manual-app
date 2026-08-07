@@ -83,6 +83,7 @@ export default async function PrintBooksPage({ searchParams }: PrintBooksPagePro
 							</header>
 
 							<section className="mt-6 grid gap-3">
+								<PrintInfo title="補充物品" value={manual.preparation} />
 								<PrintInfo title="使用する道具" value={manual.tools} />
 								<PrintInfo title="使用する洗剤" value={manual.chemicals} />
 								<PrintInfo title="対象者・頻度" value={[manual.targetStaff, manual.frequency].filter(Boolean).join(" / ")} />

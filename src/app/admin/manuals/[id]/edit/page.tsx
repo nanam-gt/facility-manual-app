@@ -80,6 +80,7 @@ export default async function EditManualPage({ params, searchParams }: EditManua
 				<section className="grid gap-5 rounded-md border border-[#d9ded2] bg-white p-5">
 					<h2 className="text-xl font-semibold">作業情報</h2>
 					<div className="grid gap-4 sm:grid-cols-2">
+						<TextArea label="補充物品" name="preparation" defaultValue={manual.preparation} rows={3} />
 						<TextArea label="使用する道具" name="tools" defaultValue={manual.tools} rows={3} />
 						<TextArea label="使用する洗剤" name="chemicals" defaultValue={manual.chemicals} rows={3} />
 						<TextArea label="検索用キーワード" name="searchKeywords" defaultValue={manual.searchKeywords} rows={3} />
