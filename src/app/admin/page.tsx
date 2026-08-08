@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BackHomeLink, PageShell } from "@/components/public/page-shell";
+import { getAdminCompletionReportSummary } from "@/lib/admin/completion-report-queries";
 import { getAdminDashboardData } from "@/lib/admin/dashboard-queries";
 import { getCurrentAdmin } from "@/lib/auth/session";
 
@@ -13,7 +14,10 @@ export default async function AdminPage() {
 		redirect("/admin/login");
 	}
 
-	const { stats, recentManuals } = await getAdminDashboardData();
+	const [{ stats, recentManuals }, completionSummary] = await Promise.all([
+		getAdminDashboardData(),
+		getAdminCompletionReportSummary(),
+	]);
 
 	return (
 		<PageShell>
@@ -71,6 +75,17 @@ export default async function AdminPage() {
 							className="inline-flex min-h-11 w-fit items-center rounded-md bg-[#2f5f3b] px-4 font-semibold text-white transition hover:bg-[#244b2e] focus:outline-none focus:ring-4 focus:ring-[#2f5f3b]/25"
 						>
 							マニュアル管理へ
+						</Link>
+						<Link
+							href="/admin/completion-reports"
+							className="inline-flex min-h-11 w-fit items-center gap-2 rounded-md bg-[#2f5f3b] px-4 font-semibold text-white transition hover:bg-[#244b2e] focus:outline-none focus:ring-4 focus:ring-[#2f5f3b]/25"
+						>
+							完了報告を見る
+							{completionSummary.activeReports > 0 ? (
+								<span className="rounded-md bg-white px-2 py-0.5 text-xs font-bold text-[#2f5f3b]">
+									{completionSummary.activeReports}
+								</span>
+							) : null}
 						</Link>
 						<div className="flex flex-wrap gap-2">
 							<Link

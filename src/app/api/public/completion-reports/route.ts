@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rejectCrossOriginPost } from "@/lib/auth/request-guards";
-import { notifyCompletionReport } from "@/lib/notifications/completion-email";
-import {
-	cancelCompletionReport,
-	createCompletionReport,
-	getActiveCompletionReport,
-	getCompletionNotificationContext,
-} from "@/lib/db/completion-reports";
+import { cancelCompletionReport, createCompletionReport } from "@/lib/db/completion-reports";
 
 export const dynamic = "force-dynamic";
 
@@ -35,20 +29,7 @@ export async function POST(request: NextRequest) {
 			return NextResponse.json({ activeReport: null });
 		}
 
-		const existingReport = await getActiveCompletionReport(manualId);
 		const activeReport = await createCompletionReport(manualId, reporterId);
-		if (!existingReport) {
-			const manual = await getCompletionNotificationContext(manualId);
-			if (manual) {
-				await notifyCompletionReport({
-					report: activeReport,
-					manual,
-					origin: request.nextUrl.origin,
-				}).catch((error) => {
-				console.error("Completion notification email failed", error);
-				});
-			}
-		}
 		return NextResponse.json({ activeReport });
 	} catch (error) {
 		console.error("Completion report failed", error);
