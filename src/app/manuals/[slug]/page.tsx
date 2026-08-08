@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { ManualCompletionPanel } from "@/components/public/manual-completion-panel";
 import { BackHomeLink, PageShell } from "@/components/public/page-shell";
+import { getActiveCompletionReport, listCompletionReporters } from "@/lib/db/completion-reports";
 import { getPublicManualBySlug } from "@/lib/db/public-queries";
 import { formatDuration } from "@/lib/manuals/duration";
 
@@ -20,6 +22,7 @@ export default async function ManualPage({ params }: ManualPageProps) {
 		notFound();
 	}
 
+	const [reporters, activeReport] = await Promise.all([listCompletionReporters(), getActiveCompletionReport(manual.id)]);
 	const duration = formatDuration(manual.durationMinMinutes, manual.durationMaxMinutes, manual.durationNote);
 
 	return (
@@ -96,6 +99,8 @@ export default async function ManualPage({ params }: ManualPageProps) {
 						<p className="mt-2 text-sm leading-6 text-[#5f6559]">{manual.completionNote}</p>
 					</section>
 				) : null}
+
+				<ManualCompletionPanel manualId={manual.id} reporters={reporters} initialActiveReport={activeReport} />
 			</article>
 		</PageShell>
 	);
