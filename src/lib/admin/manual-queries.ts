@@ -386,6 +386,9 @@ export async function updateManual(input: UpdateManualInput): Promise<string> {
 
 	const requestedSlug = toSlug(input.slug || input.title) || existing.slug;
 	const slug = await createUniqueSlug(requestedSlug, input.id);
+	const stepsTotalMinutes = sumStepDurations(input.steps);
+	const durationMinMinutes = input.durationMode === "manual" ? input.durationMinMinutes : input.durationMode === "steps_sum" ? stepsTotalMinutes : null;
+	const durationMaxMinutes = input.durationMode === "manual" ? input.durationMaxMinutes : input.durationMode === "steps_sum" ? stepsTotalMinutes : null;
 
 	const statements = [
 		db
@@ -432,8 +435,8 @@ export async function updateManual(input: UpdateManualInput): Promise<string> {
 				nullable(input.targetStaff),
 				nullable(input.frequency),
 				input.durationMode,
-				input.durationMode === "manual" ? input.durationMinMinutes : null,
-				input.durationMode === "manual" ? input.durationMaxMinutes : null,
+				durationMinMinutes,
+				durationMaxMinutes,
 				nullable(input.durationNote),
 				nullable(input.generalWarning),
 				nullable(input.completionNote),
@@ -514,6 +517,9 @@ export async function duplicateManual(id: string): Promise<string> {
 	const title = `${source.title} コピー`;
 	const slug = await createUniqueSlug(`${source.slug}-copy`);
 	const displayOrder = await getNextManualDisplayOrder(source.areaId, source.timingId);
+	const sourceStepsTotalMinutes = sumStepDurations(source.steps);
+	const durationMinMinutes = source.durationMode === "steps_sum" ? sourceStepsTotalMinutes : source.durationMinMinutes;
+	const durationMaxMinutes = source.durationMode === "steps_sum" ? sourceStepsTotalMinutes : source.durationMaxMinutes;
 	const statements: D1PreparedStatement[] = [
 		db
 			.prepare(
@@ -559,8 +565,8 @@ export async function duplicateManual(id: string): Promise<string> {
 				source.targetStaff,
 				source.frequency,
 				source.durationMode,
-				source.durationMinMinutes,
-				source.durationMaxMinutes,
+				durationMinMinutes,
+				durationMaxMinutes,
 				source.durationNote,
 				source.generalWarning,
 				source.completionNote,
@@ -666,6 +672,11 @@ async function createUniqueSlug(value: string, currentManualId?: string): Promis
 function nullable(value: string | undefined | null): string | null {
 	const trimmed = value?.trim() ?? "";
 	return trimmed.length > 0 ? trimmed : null;
+}
+
+function sumStepDurations(steps: AdminManualStepInput[]): number | null {
+	const total = steps.reduce((sum, step) => sum + (step.title.trim() ? (step.durationMinutes ?? 0) : 0), 0);
+	return total > 0 ? total : null;
 }
 
 function toSlug(value: string): string {
