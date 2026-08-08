@@ -92,12 +92,6 @@ export default async function AdminPage() {
 								ブック印刷
 							</Link>
 							<Link
-								href="/admin/reporters"
-								className="inline-flex min-h-10 items-center rounded-md border border-[#c9cec1] px-3 font-semibold text-[#315f3a] hover:border-[#8aa879]"
-							>
-								完了報告者
-							</Link>
-							<Link
 								href="/admin/backup"
 								className="inline-flex min-h-10 items-center rounded-md border border-[#c9cec1] px-3 font-semibold text-[#315f3a] hover:border-[#8aa879]"
 							>

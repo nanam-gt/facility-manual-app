@@ -8,13 +8,6 @@ export type CompletionReporter = {
 	name: string;
 };
 
-export type AdminCompletionReporter = CompletionReporter & {
-	email: string | null;
-	displayOrder: number;
-	isActive: boolean;
-	reportCount: number;
-};
-
 export type ActiveCompletionReport = {
 	id: string;
 	manualId: string;
@@ -27,13 +20,6 @@ export type ActiveCompletionReport = {
 type ReporterRow = {
 	id: string;
 	name: string;
-};
-
-type AdminReporterRow = ReporterRow & {
-	email: string | null;
-	display_order: number;
-	is_active: number;
-	report_count: number;
 };
 
 type ManualRow = {
@@ -68,117 +54,6 @@ export async function listCompletionReporters(): Promise<CompletionReporter[]> {
 		id: reporter.id,
 		name: reporter.name,
 	}));
-}
-
-export async function listAdminCompletionReporters(): Promise<AdminCompletionReporter[]> {
-	const db = await getDb();
-	const { results } = await db
-		.prepare(
-			`
-			SELECT
-				completion_reporters.id,
-				completion_reporters.name,
-				completion_reporters.email,
-				completion_reporters.display_order,
-				completion_reporters.is_active,
-				COUNT(manual_completion_reports.id) AS report_count
-			FROM completion_reporters
-			LEFT JOIN manual_completion_reports
-				ON manual_completion_reports.reporter_id = completion_reporters.id
-			WHERE completion_reporters.deleted_at IS NULL
-			GROUP BY completion_reporters.id
-			ORDER BY completion_reporters.display_order ASC, completion_reporters.name ASC
-			`,
-		)
-		.all<AdminReporterRow>();
-
-	return results.map((reporter) => ({
-		id: reporter.id,
-		name: reporter.name,
-		email: reporter.email,
-		displayOrder: reporter.display_order,
-		isActive: reporter.is_active === 1,
-		reportCount: reporter.report_count,
-	}));
-}
-
-export async function upsertCompletionReporter(input: {
-	id?: string;
-	name: string;
-	email?: string;
-	displayOrder?: number;
-	isActive: boolean;
-}): Promise<void> {
-	const db = await getDb();
-	const id = input.id || generateId("reporter");
-	const now = new Date().toISOString();
-
-	await db
-		.prepare(
-			`
-			INSERT INTO completion_reporters (
-				id,
-				name,
-				email,
-				display_order,
-				is_active,
-				created_at,
-				updated_at,
-				deleted_at
-			) VALUES (?, ?, ?, ?, ?, ?, ?, NULL)
-			ON CONFLICT(id) DO UPDATE SET
-				name = excluded.name,
-				email = excluded.email,
-				display_order = excluded.display_order,
-				is_active = excluded.is_active,
-				updated_at = excluded.updated_at
-			`,
-		)
-		.bind(id, input.name, nullable(input.email), input.displayOrder ?? 0, input.isActive ? 1 : 0, now, now)
-		.run();
-}
-
-export async function deleteCompletionReporter(id: string): Promise<"deleted" | "not_found"> {
-	const db = await getDb();
-	const reporter = await db
-		.prepare(
-			`
-			SELECT
-				completion_reporters.id,
-				COUNT(manual_completion_reports.id) AS report_count
-			FROM completion_reporters
-			LEFT JOIN manual_completion_reports
-				ON manual_completion_reports.reporter_id = completion_reporters.id
-			WHERE completion_reporters.id = ?
-				AND completion_reporters.deleted_at IS NULL
-			GROUP BY completion_reporters.id
-			`,
-		)
-		.bind(id)
-		.first<{ id: string; report_count: number }>();
-
-	if (!reporter) {
-		return "not_found";
-	}
-
-	if (reporter.report_count > 0) {
-		await db
-			.prepare(
-				`
-				UPDATE completion_reporters
-				SET is_active = 0,
-					deleted_at = ?,
-					updated_at = ?
-				WHERE id = ?
-				`,
-			)
-			.bind(new Date().toISOString(), new Date().toISOString(), id)
-			.run();
-		return "deleted";
-	}
-
-	await db.prepare("DELETE FROM completion_reporters WHERE id = ?").bind(id).run();
-	return "deleted";
 }
 
 export async function getActiveCompletionReport(manualId: string, now = new Date()): Promise<ActiveCompletionReport | null> {
@@ -329,9 +204,4 @@ function mapActiveReport(row: CompletionReportRow): ActiveCompletionReport {
 		reportedAt: row.reported_at,
 		expiresAt: new Date(Date.parse(row.reported_at) + ACTIVE_WINDOW_MS).toISOString(),
 	};
-}
-
-function nullable(value: string | undefined): string | null {
-	const trimmed = value?.trim() ?? "";
-	return trimmed.length > 0 ? trimmed : null;
 }
