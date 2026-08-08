@@ -72,7 +72,7 @@ export default async function ManualPage({ params }: ManualPageProps) {
 									</span>
 									<div className="min-w-0 flex-1">
 										<h3 className="text-lg font-semibold">{step.title}</h3>
-										{step.description ? <p className="mt-2 text-sm leading-6 text-[#5f6559]">{step.description}</p> : null}
+										{step.description ? <p className="mt-2 text-base font-medium leading-7 text-[#3f463a]">{step.description}</p> : null}
 										{step.imageObjectKey ? (
 											// eslint-disable-next-line @next/next/no-img-element
 											<img
