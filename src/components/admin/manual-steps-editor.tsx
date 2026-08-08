@@ -60,18 +60,8 @@ export function ManualStepsEditor({ initialSteps }: ManualStepsEditorProps) {
 
 	return (
 		<section className="grid gap-5 rounded-md border border-[#d9ded2] bg-white p-5">
-			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+			<div>
 				<h2 className="text-xl font-semibold">手順</h2>
-				<button
-					type="button"
-					onClick={() => {
-						markDirty();
-						setSteps((current) => [...current, emptyStep()]);
-					}}
-					className="min-h-11 rounded-md border border-[#c9cec1] bg-white px-4 text-sm font-semibold text-[#315f3a] transition hover:border-[#8aa879] focus:outline-none focus:ring-4 focus:ring-[#4f7d3f]/15"
-				>
-					+ 手順を追加
-				</button>
 			</div>
 			<div className="grid gap-4">
 				{steps.map((step, index) => (
