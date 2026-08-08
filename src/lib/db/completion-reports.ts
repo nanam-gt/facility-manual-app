@@ -84,6 +84,11 @@ export async function getActiveCompletionReport(manualId: string, now = new Date
 
 export async function createCompletionReport(manualId: string, reporterId: string): Promise<ActiveCompletionReport> {
 	const db = await getDb();
+	const existingReport = await getActiveCompletionReport(manualId);
+	if (existingReport) {
+		return existingReport;
+	}
+
 	const [manual, reporter] = await Promise.all([findPublishedManual(manualId), findReporter(reporterId)]);
 
 	if (!manual) {
