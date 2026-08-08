@@ -46,8 +46,16 @@
 			"bucket_name": "facility-manual-images"
 		}
 	],
+	"send_email": [
+		{
+			"name": "NOTIFY_EMAIL",
+			"destination_address": "nana.m.mysh@gmail.com"
+		}
+	],
 	"vars": {
-		"NEXTJS_ENV": "production"
+		"NEXTJS_ENV": "production",
+		"COMPLETION_NOTIFY_EMAIL": "nana.m.mysh@gmail.com",
+		"COMPLETION_NOTIFY_FROM": "notifications@ichibanboshi.workers.dev"
 	}
 	/**
 	 * Smart Placement

@@ -4,9 +4,12 @@
 interface __BaseEnv_CloudflareEnv {
 	MANUAL_IMAGES: R2Bucket;
 	DB: D1Database;
+	NOTIFY_EMAIL: SendEmail;
 	IMAGES: ImagesBinding;
 	ASSETS: Fetcher;
 	NEXTJS_ENV: string;
+	COMPLETION_NOTIFY_EMAIL: string;
+	COMPLETION_NOTIFY_FROM: string;
 	WORKER_SELF_REFERENCE: Service<typeof import("./.open-next/worker").default>;
 }
 declare namespace Cloudflare {
@@ -20,7 +23,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "NEXTJS_ENV">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "NEXTJS_ENV" | "COMPLETION_NOTIFY_EMAIL" | "COMPLETION_NOTIFY_FROM">> {}
 }
 
 // Begin runtime types

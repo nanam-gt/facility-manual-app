@@ -4,6 +4,9 @@ export type AppCloudflareEnv = CloudflareEnv & {
 	SESSION_SECRET?: string;
 	INITIAL_ADMIN_EMAIL?: string;
 	INITIAL_ADMIN_PASSWORD?: string;
+	COMPLETION_NOTIFY_EMAIL?: string;
+	COMPLETION_NOTIFY_FROM?: string;
+	NOTIFY_EMAIL?: SendEmail;
 };
 
 export async function getEnv(): Promise<AppCloudflareEnv> {

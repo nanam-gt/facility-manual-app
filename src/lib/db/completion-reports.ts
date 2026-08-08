@@ -24,8 +24,12 @@ type ReporterRow = {
 
 type ManualRow = {
 	id: string;
+	title: string;
 	area_id: string;
+	area_name: string;
 	timing_id: string;
+	timing_name: string;
+	slug: string;
 };
 
 type CompletionReportRow = {
@@ -134,6 +138,23 @@ export async function createCompletionReport(manualId: string, reporterId: strin
 	};
 }
 
+export async function getCompletionNotificationContext(manualId: string): Promise<{
+	title: string;
+	areaName: string;
+	timingName: string;
+	slug: string;
+} | null> {
+	const manual = await findPublishedManual(manualId);
+	return manual
+		? {
+				title: manual.title,
+				areaName: manual.area_name,
+				timingName: manual.timing_name,
+				slug: manual.slug,
+			}
+		: null;
+}
+
 export async function cancelCompletionReport(manualId: string, reporterId: string): Promise<ActiveCompletionReport | null> {
 	const db = await getDb();
 	const [activeReport, reporter] = await Promise.all([getActiveCompletionReport(manualId), findReporter(reporterId)]);
@@ -166,11 +187,20 @@ async function findPublishedManual(manualId: string): Promise<ManualRow | null> 
 	return db
 		.prepare(
 			`
-			SELECT id, area_id, timing_id
+			SELECT
+				manuals.id,
+				manuals.title,
+				manuals.area_id,
+				areas.name AS area_name,
+				manuals.timing_id,
+				timings.name AS timing_name,
+				manuals.slug
 			FROM manuals
-			WHERE id = ?
-				AND status = 'published'
-				AND deleted_at IS NULL
+			INNER JOIN areas ON areas.id = manuals.area_id
+			INNER JOIN timings ON timings.id = manuals.timing_id
+			WHERE manuals.id = ?
+				AND manuals.status = 'published'
+				AND manuals.deleted_at IS NULL
 			LIMIT 1
 			`,
 		)
