@@ -35,6 +35,28 @@ function emptyStep(): ManualStepEditorValue {
 export function ManualStepsEditor({ initialSteps }: ManualStepsEditorProps) {
 	const [steps, setSteps] = useState<ManualStepEditorValue[]>(initialSteps.length > 0 ? initialSteps : [emptyStep()]);
 	const markDirty = () => document.dispatchEvent(new Event("manual-form-dirty"));
+	const insertStepAfter = (index: number) => {
+		markDirty();
+		setSteps((current) => {
+			const next = [...current];
+			next.splice(index + 1, 0, emptyStep());
+			return next;
+		});
+	};
+	const moveStep = (index: number, direction: -1 | 1) => {
+		markDirty();
+		setSteps((current) => {
+			const targetIndex = index + direction;
+			if (targetIndex < 0 || targetIndex >= current.length) {
+				return current;
+			}
+
+			const next = [...current];
+			const [step] = next.splice(index, 1);
+			next.splice(targetIndex, 0, step);
+			return next;
+		});
+	};
 
 	return (
 		<section className="grid gap-5 rounded-md border border-[#d9ded2] bg-white p-5">
@@ -54,23 +76,47 @@ export function ManualStepsEditor({ initialSteps }: ManualStepsEditorProps) {
 			<div className="grid gap-4">
 				{steps.map((step, index) => (
 					<div key={step.id} className="grid gap-3 rounded-md border border-[#e3e6dc] p-4">
-						<div className="flex items-center justify-between gap-3">
+						<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 							<p className="text-sm font-semibold text-[#4f5d43]">手順 {index + 1}</p>
-							<button
-								type="button"
-								onClick={() => {
-									markDirty();
-									setSteps((current) =>
-										current.length <= 1 ? [emptyStep()] : current.filter((_, stepIndex) => stepIndex !== index),
-									);
-								}}
-								className="inline-flex min-h-9 items-center gap-2 rounded-md border border-[#d8c7a2] px-3 text-sm font-semibold text-[#6f5420] transition hover:border-[#b9914b] focus:outline-none focus:ring-4 focus:ring-[#b9914b]/15"
-								aria-label={`手順${index + 1}を削除`}
-								title="手順を削除"
-							>
-								<TrashIcon />
-								<span>削除</span>
-							</button>
+							<div className="flex flex-wrap gap-2">
+								<button
+									type="button"
+									onClick={() => moveStep(index, -1)}
+									disabled={index === 0}
+									className="inline-flex min-h-9 items-center gap-1 rounded-md border border-[#c9cec1] px-3 text-sm font-semibold text-[#315f3a] transition hover:border-[#8aa879] focus:outline-none focus:ring-4 focus:ring-[#4f7d3f]/15 disabled:cursor-not-allowed disabled:opacity-45"
+									aria-label={`手順${index + 1}を上へ移動`}
+									title="上へ移動"
+								>
+									<ArrowUpIcon />
+									<span>上へ</span>
+								</button>
+								<button
+									type="button"
+									onClick={() => moveStep(index, 1)}
+									disabled={index === steps.length - 1}
+									className="inline-flex min-h-9 items-center gap-1 rounded-md border border-[#c9cec1] px-3 text-sm font-semibold text-[#315f3a] transition hover:border-[#8aa879] focus:outline-none focus:ring-4 focus:ring-[#4f7d3f]/15 disabled:cursor-not-allowed disabled:opacity-45"
+									aria-label={`手順${index + 1}を下へ移動`}
+									title="下へ移動"
+								>
+									<ArrowDownIcon />
+									<span>下へ</span>
+								</button>
+								<button
+									type="button"
+									onClick={() => {
+										markDirty();
+										setSteps((current) =>
+											current.length <= 1 ? [emptyStep()] : current.filter((_, stepIndex) => stepIndex !== index),
+										);
+									}}
+									className="inline-flex min-h-9 items-center gap-2 rounded-md border border-[#d8c7a2] px-3 text-sm font-semibold text-[#6f5420] transition hover:border-[#b9914b] focus:outline-none focus:ring-4 focus:ring-[#b9914b]/15"
+									aria-label={`手順${index + 1}を削除`}
+									title="手順を削除"
+								>
+									<TrashIcon />
+									<span>削除</span>
+								</button>
+							</div>
 						</div>
 						<TextInput label="手順名" name="stepTitle" defaultValue={step.title} />
 						<TextArea label="説明" name="stepDescription" defaultValue={step.description} rows={3} />
@@ -103,10 +149,35 @@ export function ManualStepsEditor({ initialSteps }: ManualStepsEditorProps) {
 								className="max-h-56 w-full rounded-md border border-[#e3e6dc] object-cover"
 							/>
 						) : null}
+						<button
+							type="button"
+							onClick={() => insertStepAfter(index)}
+							className="min-h-10 rounded-md border border-dashed border-[#b9c5b0] bg-[#f8faf6] px-3 text-sm font-semibold text-[#315f3a] transition hover:border-[#8aa879] hover:bg-white focus:outline-none focus:ring-4 focus:ring-[#4f7d3f]/15"
+						>
+							+ この下に手順を追加
+						</button>
 					</div>
 				))}
 			</div>
 		</section>
+	);
+}
+
+function ArrowUpIcon() {
+	return (
+		<svg aria-hidden="true" viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2">
+			<path d="M12 19V5" />
+			<path d="m5 12 7-7 7 7" />
+		</svg>
+	);
+}
+
+function ArrowDownIcon() {
+	return (
+		<svg aria-hidden="true" viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2">
+			<path d="M12 5v14" />
+			<path d="m19 12-7 7-7-7" />
+		</svg>
 	);
 }
 
