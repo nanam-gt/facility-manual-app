@@ -132,12 +132,18 @@ export function ManualStepsEditor({ initialSteps }: ManualStepsEditorProps) {
 						</div>
 						<input type="hidden" name="stepImageObjectKey" value={step.imageObjectKey ?? ""} />
 						{step.imageObjectKey ? (
-							// eslint-disable-next-line @next/next/no-img-element
-							<img
-								src={`/api/public/images/${step.imageObjectKey}`}
-								alt={step.imageAlt ?? ""}
-								className="max-h-56 w-full rounded-md border border-[#e3e6dc] object-cover"
-							/>
+							<div className="grid gap-3 rounded-md border border-[#e3e6dc] bg-[#f8faf6] p-3">
+								{/* eslint-disable-next-line @next/next/no-img-element */}
+								<img
+									src={`/api/public/images/${step.imageObjectKey}`}
+									alt={step.imageAlt ?? ""}
+									className="max-h-56 w-full rounded-md border border-[#e3e6dc] object-cover"
+								/>
+								<label className="flex items-center gap-2 text-sm font-semibold text-[#6f5420]">
+									<input name={`stepImageDelete-${index}`} type="checkbox" value="1" onChange={markDirty} className="size-4" />
+									この写真を削除する
+								</label>
+							</div>
 						) : null}
 						<button
 							type="button"

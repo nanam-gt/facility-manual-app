@@ -47,8 +47,10 @@ export async function POST(request: NextRequest, { params }: ManualRouteProps) {
 	const stepDurations = formData.getAll("stepDuration").map(String);
 	const stepImageKeys = formData.getAll("stepImageObjectKey").map(String);
 	const stepImageAlts = formData.getAll("stepImageAlt").map(String);
+	const stepImageDeletes = stepTitles.map((_, index) => text(formData, `stepImageDelete-${index}`));
 	const stepImages = formData.getAll("stepImage");
 	const env = await getEnv();
+	const imageKeysToDelete = new Set<string>();
 
 	try {
 		await updateManual({
@@ -92,6 +94,10 @@ export async function POST(request: NextRequest, { params }: ManualRouteProps) {
 
 					const existingImageObjectKey = nullable(stepImageKeys[index] ?? "");
 					const uploaded = await uploadStepImageSafely(env.MANUAL_IMAGES, id, stepImages[index], stepImageAlts[index] ?? "");
+					const shouldDeleteExistingImage = stepImageDeletes[index] === "1";
+					if ((shouldDeleteExistingImage || uploaded) && existingImageObjectKey) {
+						imageKeysToDelete.add(existingImageObjectKey);
+					}
 
 					return {
 						title,
@@ -100,8 +106,8 @@ export async function POST(request: NextRequest, { params }: ManualRouteProps) {
 						completionCriteria: stepCompletions[index]?.trim() ?? "",
 						tools: stepTools[index]?.trim() ?? "",
 						durationMinutes: numberOrNull(stepDurations[index] ?? ""),
-						imageObjectKey: uploaded?.objectKey ?? existingImageObjectKey,
-						imageAlt: uploaded?.imageAlt ?? nullable(stepImageAlts[index] ?? ""),
+						imageObjectKey: uploaded?.objectKey ?? (shouldDeleteExistingImage ? null : existingImageObjectKey),
+						imageAlt: uploaded?.imageAlt ?? (shouldDeleteExistingImage ? null : nullable(stepImageAlts[index] ?? "")),
 						imageWidth: uploaded?.width ?? null,
 						imageHeight: uploaded?.height ?? null,
 						imageMimeType: uploaded?.mimeType ?? null,
@@ -109,6 +115,7 @@ export async function POST(request: NextRequest, { params }: ManualRouteProps) {
 				}),
 			),
 		});
+		await deleteStepImagesSafely(env.MANUAL_IMAGES, imageKeysToDelete);
 	} catch (error) {
 		console.error("Manual update failed", error);
 		const errorCode = error instanceof ImageUploadError ? "image" : "save";
@@ -116,6 +123,22 @@ export async function POST(request: NextRequest, { params }: ManualRouteProps) {
 	}
 
 	return NextResponse.redirect(new URL("/admin/manuals?saved=updated", request.url), 303);
+}
+
+async function deleteStepImagesSafely(bucket: R2Bucket | undefined, objectKeys: Set<string>) {
+	if (!bucket || objectKeys.size === 0) {
+		return;
+	}
+
+	await Promise.all(
+		Array.from(objectKeys).map(async (objectKey) => {
+			try {
+				await bucket.delete(objectKey);
+			} catch (error) {
+				console.error("Step image delete skipped", error);
+			}
+		}),
+	);
 }
 
 async function uploadStepImageSafely(

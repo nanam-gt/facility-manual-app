@@ -3,7 +3,7 @@ import { getDb, getEnv } from "@/lib/db/client";
 import { generateId, generateToken, hashPassword, hashSessionToken, verifyPassword } from "@/lib/auth/crypto";
 
 export const ADMIN_SESSION_COOKIE = "facility_admin_session";
-const SESSION_DAYS = 14;
+const SESSION_HOURS = 24;
 
 export type AuthenticatedAdmin = {
 	id: string;
@@ -58,7 +58,7 @@ export async function loginAdmin(email: string, password: string): Promise<{ tok
 	const token = generateToken();
 	const tokenHash = await hashSessionToken(token, secret);
 	const now = new Date();
-	const expiresAt = new Date(now.getTime() + SESSION_DAYS * 24 * 60 * 60 * 1000);
+	const expiresAt = new Date(now.getTime() + SESSION_HOURS * 60 * 60 * 1000);
 
 	await db
 		.prepare(

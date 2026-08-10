@@ -47,49 +47,33 @@ export default async function Home() {
 
 				<div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
 					<section className="flex flex-col gap-4">
-						<div className="flex items-end justify-between gap-4">
-							<h2 className="text-xl font-semibold">エリアから探す</h2>
-							<span className="text-sm text-[#6b7165]">{areas.length}件</span>
-						</div>
+						<h2 className="text-xl font-semibold">タイミングから探す</h2>
 						<div className="grid gap-3 sm:grid-cols-2">
-							{areas.map((area) => (
-								<Link
-									key={area.id}
-									href={`/areas/${area.id}`}
-									className="rounded-md border border-[#d9ded2] bg-white p-4 transition hover:border-[#8aa879] hover:shadow-sm focus:outline-none focus:ring-4 focus:ring-[#4f7d3f]/15"
-								>
-									<div className="flex items-start justify-between gap-3">
-										<div>
-											<p className="text-sm font-medium text-[#758064]">{area.code ?? "Area"}</p>
-											<h3 className="mt-1 text-lg font-semibold">{area.name}</h3>
-										</div>
-										<span className="rounded-md bg-[#edf1e9] px-2.5 py-1 text-sm text-[#4f5d43]">
-											{area.manualCount}件
-										</span>
-									</div>
-									{area.description ? <p className="mt-3 text-sm leading-6 text-[#687061]">{area.description}</p> : null}
-								</Link>
-							))}
-						</div>
-					</section>
-
-					<section className="flex flex-col gap-4">
-						<div className="flex items-end justify-between gap-4">
-							<h2 className="text-xl font-semibold">タイミング</h2>
-							<span className="text-sm text-[#6b7165]">{timings.length}件</span>
-						</div>
-						<div className="flex flex-col gap-3">
 							{timings.map((timing) => (
 								<Link
 									key={timing.id}
 									href={`/timings/${timing.id}`}
 									className="rounded-md border border-[#d9ded2] bg-white p-4 transition hover:border-[#8aa879] hover:shadow-sm focus:outline-none focus:ring-4 focus:ring-[#4f7d3f]/15"
 								>
-									<div className="flex items-center justify-between gap-3">
-										<h3 className="text-base font-semibold">{timing.name}</h3>
-										<span className="text-sm text-[#687061]">{timing.manualCount}件</span>
-									</div>
+									<h3 className="text-base font-semibold">{timing.name}</h3>
 									{timing.description ? <p className="mt-2 text-sm leading-6 text-[#687061]">{timing.description}</p> : null}
+								</Link>
+							))}
+						</div>
+					</section>
+
+					<section className="flex flex-col gap-4">
+						<h2 className="text-xl font-semibold">エリアから探す</h2>
+						<div className="flex flex-col gap-3">
+							{areas.map((area) => (
+								<Link
+									key={area.id}
+									href={`/areas/${area.id}`}
+									className="rounded-md border border-[#d9ded2] bg-white p-4 transition hover:border-[#8aa879] hover:shadow-sm focus:outline-none focus:ring-4 focus:ring-[#4f7d3f]/15"
+								>
+									<p className="text-sm font-medium text-[#758064]">{area.code ?? "Area"}</p>
+									<h3 className="mt-1 text-lg font-semibold">{area.name}</h3>
+									{area.description ? <p className="mt-3 text-sm leading-6 text-[#687061]">{area.description}</p> : null}
 								</Link>
 							))}
 						</div>

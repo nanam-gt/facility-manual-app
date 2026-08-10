@@ -49,8 +49,16 @@ export default async function AdminManualsPage({ searchParams }: AdminManualsPag
 
 	return (
 		<PageShell>
-			<div className="flex items-center justify-between gap-4">
-				<BackHomeLink />
+			<div className="flex flex-wrap items-center justify-between gap-4">
+				<div className="flex flex-wrap gap-3">
+					<BackHomeLink />
+					<Link
+						href="/admin"
+						className="w-fit text-sm font-medium text-[#315f3a] underline-offset-4 hover:underline focus:outline-none focus:ring-4 focus:ring-[#4f7d3f]/15"
+					>
+						管理トップへ
+					</Link>
+				</div>
 				<Link
 					href="/admin/manuals/new"
 					className="inline-flex min-h-11 items-center rounded-md bg-[#2f5f3b] px-4 text-sm font-semibold text-white transition hover:bg-[#244b2e] focus:outline-none focus:ring-4 focus:ring-[#2f5f3b]/25"
