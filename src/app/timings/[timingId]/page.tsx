@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { ManualCard } from "@/components/public/manual-card";
 import { BackHomeLink, PageShell } from "@/components/public/page-shell";
 import { getPublicTiming, listPublicManualsByTiming } from "@/lib/db/public-queries";
@@ -29,9 +30,19 @@ export default async function TimingPage({ params }: TimingPageProps) {
 			</header>
 
 			<section className="flex flex-col gap-4">
-				<div className="flex items-end justify-between gap-4">
-					<h2 className="text-xl font-semibold">公開マニュアル</h2>
-					<span className="text-sm text-[#6b7165]">{manuals.length}件</span>
+				<div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+					<div className="flex items-end gap-3">
+						<h2 className="text-xl font-semibold">公開マニュアル</h2>
+						<span className="text-sm text-[#6b7165]">{manuals.length}件</span>
+					</div>
+					{manuals.length > 0 ? (
+						<Link
+							href={`/print/checklists/timings/${timing.id}`}
+							className="inline-flex min-h-11 w-fit items-center rounded-md border border-[#c9cec1] bg-white px-4 text-sm font-semibold text-[#315f3a] transition hover:border-[#8aa879] focus:outline-none focus:ring-4 focus:ring-[#4f7d3f]/15"
+						>
+							チェックリスト印刷
+						</Link>
+					) : null}
 				</div>
 				{manuals.length > 0 ? (
 					<div className="grid gap-3">
