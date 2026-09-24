@@ -73,12 +73,14 @@ export default async function PrintTimingChecklistPage({ params }: PrintTimingCh
 															</h3>
 															{duration ? <p className="text-sm font-semibold">{duration}</p> : null}
 														</div>
-														<Link
-															href={`/admin/manuals/${manual.id}/edit`}
-															className="mt-1 block text-xs font-semibold text-[#315f3a] underline-offset-4 hover:underline"
-														>
-															管理ページ: /admin/manuals/{manual.id}/edit
-														</Link>
+														<div className="mt-1 grid gap-0.5">
+															<Link href={`/manuals/${manual.slug}`} className="block text-xs font-semibold text-[#315f3a] underline-offset-4 hover:underline">
+																詳細ページ: /manuals/{manual.slug}
+															</Link>
+															<Link href={`/admin/manuals/${manual.id}/edit`} className="block text-[10px] font-normal text-[#5f6559] underline-offset-4 hover:underline">
+																管理ページ: /admin/manuals/{manual.id}/edit
+															</Link>
+														</div>
 														{manual.steps.length > 0 ? (
 															<ol className="mt-3 grid gap-2">
 																{manual.steps.map((step, stepIndex) => (
