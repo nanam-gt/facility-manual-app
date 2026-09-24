@@ -60,8 +60,8 @@ export default async function PrintTimingChecklistPage({ params }: PrintTimingCh
 
 										return (
 											<article key={manual.id} className="break-inside-avoid rounded-sm border border-[#989f90] p-4">
-												<div className="flex items-start gap-3">
-													<span className="mt-0.5 inline-block size-5 shrink-0 border-2 border-[#1f241d]" aria-hidden="true" />
+												<div className="grid grid-cols-[3.75rem_1fr] items-start gap-3">
+													<CheckPair />
 													<div className="min-w-0 flex-1">
 														<div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
 															<h3 className="text-lg font-bold">
@@ -73,8 +73,8 @@ export default async function PrintTimingChecklistPage({ params }: PrintTimingCh
 														{manual.steps.length > 0 ? (
 															<ol className="mt-3 grid gap-2">
 																{manual.steps.map((step, stepIndex) => (
-																	<li key={step.id} className="grid grid-cols-[1.5rem_1fr_auto] items-start gap-2 text-sm">
-																		<span className="mt-0.5 inline-block size-4 border border-[#1f241d]" aria-hidden="true" />
+																	<li key={step.id} className="grid grid-cols-[3.75rem_1fr_auto] items-start gap-2 text-sm">
+																		<CheckPair small />
 																		<span>
 																			{stepIndex + 1}. {step.title}
 																		</span>
@@ -125,4 +125,22 @@ function groupByArea(manuals: Awaited<ReturnType<typeof getPublicManualBook>>["m
 	}
 
 	return groups;
+}
+
+function CheckPair({ small = false }: { small?: boolean }) {
+	const boxClassName = small ? "inline-block size-4 border border-[#1f241d]" : "inline-block size-5 border-2 border-[#1f241d]";
+	const labelClassName = small ? "text-[9px] leading-none" : "text-[10px] leading-none";
+
+	return (
+		<div className="grid grid-cols-2 gap-2 text-center">
+			<span className="grid justify-items-center gap-1">
+				<span className={boxClassName} aria-hidden="true" />
+				<span className={labelClassName}>作業</span>
+			</span>
+			<span className="grid justify-items-center gap-1">
+				<span className={boxClassName} aria-hidden="true" />
+				<span className={labelClassName}>管理</span>
+			</span>
+		</div>
+	);
 }
