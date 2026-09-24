@@ -60,48 +60,45 @@ export default async function PrintTimingChecklistPage({ params }: PrintTimingCh
 
 										return (
 											<article key={manual.id} className="break-inside-avoid rounded-sm border border-[#989f90] p-4">
-												<div className="mb-2 grid grid-cols-[3.75rem_1fr] items-end gap-3">
-													<CheckHeader />
-													<p className="text-xs font-semibold text-[#5f6559]">マニュアル・手順</p>
+												<div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+													<h3 className="text-lg font-bold">
+														{manualIndex + 1}. {manual.title}
+													</h3>
+													{duration ? <p className="text-sm font-semibold">{duration}</p> : null}
 												</div>
-												<div className="grid grid-cols-[3.75rem_1fr] items-start gap-3">
-													<CheckBoxes />
-													<div className="min-w-0 flex-1">
-														<div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-															<h3 className="text-lg font-bold">
-																{manualIndex + 1}. {manual.title}
-															</h3>
-															{duration ? <p className="text-sm font-semibold">{duration}</p> : null}
+												<div className="mt-1 grid gap-0.5">
+													<Link href={`/manuals/${manual.slug}`} className="block text-xs font-semibold text-[#315f3a] underline-offset-4 hover:underline">
+														詳細ページ: /manuals/{manual.slug}
+													</Link>
+													<Link href={`/admin/manuals/${manual.id}/edit`} className="block text-[10px] font-normal text-[#5f6559] underline-offset-4 hover:underline">
+														管理ページ: /admin/manuals/{manual.id}/edit
+													</Link>
+												</div>
+												{manual.steps.length > 0 ? (
+													<>
+														<div className="mt-3 grid grid-cols-[3.75rem_1fr] items-end gap-2">
+															<CheckHeader />
+															<p className="text-xs font-semibold text-[#5f6559]">手順</p>
 														</div>
-														<div className="mt-1 grid gap-0.5">
-															<Link href={`/manuals/${manual.slug}`} className="block text-xs font-semibold text-[#315f3a] underline-offset-4 hover:underline">
-																詳細ページ: /manuals/{manual.slug}
-															</Link>
-															<Link href={`/admin/manuals/${manual.id}/edit`} className="block text-[10px] font-normal text-[#5f6559] underline-offset-4 hover:underline">
-																管理ページ: /admin/manuals/{manual.id}/edit
-															</Link>
-														</div>
-														{manual.steps.length > 0 ? (
-															<ol className="mt-3 grid gap-2">
-																{manual.steps.map((step, stepIndex) => (
-																	<li key={step.id} className="grid grid-cols-[3.75rem_1fr_auto] items-start gap-2 text-sm">
-																		<CheckBoxes small />
-																		<span>
-																			{stepIndex + 1}. {step.title}
-																		</span>
-																		{step.durationMinutes ? <span>{step.durationMinutes}分</span> : null}
-																	</li>
-																))}
-															</ol>
-														) : (
-															<p className="mt-3 text-sm text-[#5f6559]">登録済み手順はありません。</p>
-														)}
-														<div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
-															<p>完了時刻: ______ : ______</p>
-															<p>メモ: ______________________________</p>
-														</div>
+														<ol className="mt-2 grid gap-2">
+															{manual.steps.map((step, stepIndex) => (
+																<li key={step.id} className="grid grid-cols-[3.75rem_1fr_auto] items-start gap-2 text-sm">
+																	<CheckBoxes small />
+																	<span>
+																		{stepIndex + 1}. {step.title}
+																	</span>
+																	{step.durationMinutes ? <span>{step.durationMinutes}分</span> : null}
+																</li>
+															))}
+														</ol>
+													</>
+												) : (
+													<p className="mt-3 text-sm text-[#5f6559]">登録済み手順はありません。</p>
+												)}
+												<div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+													<p>完了時刻: ______ : ______</p>
+													<p>メモ: ______________________________</p>
 													</div>
-												</div>
 											</article>
 										);
 									})}
@@ -141,8 +138,8 @@ function groupByArea(manuals: Awaited<ReturnType<typeof getPublicManualBook>>["m
 function CheckHeader() {
 	return (
 		<div className="grid grid-cols-2 gap-2 text-center text-[10px] font-semibold leading-none">
-			<span>作業</span>
 			<span>管理</span>
+			<span>作業</span>
 		</div>
 	);
 }
